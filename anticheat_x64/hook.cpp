@@ -107,7 +107,11 @@ HMODULE Hooks::hkLoadLibraryW(LPCWSTR lpLibFileName)
 	return oLoadLibraryW(lpLibFileName);
 }
 
+//Do not use if your game/app uses this function
 SHORT Hooks::hkGetAsyncKeyState(int vKey)
 {
+	if (vKey == VK_INSERT || vKey == VK_F3)
+		Report::SendReport(ODD_BAHAVIOR);
+
 	return oGetAsyncKeyState(vKey);
 }

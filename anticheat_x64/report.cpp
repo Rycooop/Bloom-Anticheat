@@ -37,8 +37,13 @@ void Report::SendReport(DWORD reportCode)
 			std::cout << "[*] Blacklisted DLL attempted to load, closing..." << std::endl;
 			break;
 		}
+		case ODD_BAHAVIOR:
+		{
+			std::cout << "[*] Odd process bahavior, possible Manually Mapped module..." << std::endl;
+			break;
+		}
 	}
 
-	Sleep(3000);
+	Sleep(4000);
 	ExitProcess(0);
 }

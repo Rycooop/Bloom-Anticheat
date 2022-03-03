@@ -7,9 +7,9 @@ typedef HMODULE(APIENTRY* tHLoadLibraryW)(LPCWSTR lpLibFileName);
 typedef SHORT(APIENTRY* tHKeyAsyncKeyState)(int vKey);
 
 //string arrays
-const char* FuncsToHook[];
-const char* BlacklistedModules[];
-const wchar_t* BlacklistedModulesW[];
+extern const char* FuncsToHook[];
+extern const char* BlacklistedModules[];
+extern const wchar_t* BlacklistedModulesW[];
 
 namespace Hooks
 {

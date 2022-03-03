@@ -12,10 +12,16 @@ BOOL Utility::isBlacklistedModuleFound()
 
         PLDR_DATA_TABLE_ENTRY modEntry = CONTAINING_RECORD(entry, LDR_DATA_TABLE_ENTRY, InMemoryOrderLinks);
 
-        if (wcsstr(modEntry->FullDllName.Buffer, L"jhj") == 0)
+        /*
+        for (int i = 0; i < sizeof(BlacklistedModulesW) / sizeof(*BlacklistedModulesW); i++)
         {
-            return TRUE;
+            if (wcsstr(modEntry->FullDllName.Buffer, BlacklistedModulesW[i]))
+            {
+                return TRUE;
+            }
         }
+        */
+
     }
 
     return FALSE;
