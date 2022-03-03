@@ -1,0 +1,2 @@
+﻿Source.obj : error LNK2005: "struct GLOBALS Globals" (?Globals@@3UGLOBALS@@A) already defined in error.obj
+C:\Users\Ryan\Desktop\AntiCheat\x64\Release\AntiCheat.exe : fatal error LNK1169: one or more multiply defined symbols found
