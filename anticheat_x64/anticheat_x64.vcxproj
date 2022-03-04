@@ -155,14 +155,14 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="hook.cpp" />
     <ClCompile Include="report.cpp" />
-    <ClCompile Include="util.cpp" />
+    <ClCompile Include="memory.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="debugger.h" />
     <ClInclude Include="hook.h" />
     <ClInclude Include="includes.h" />
     <ClInclude Include="report.h" />
-    <ClInclude Include="util.h" />
+    <ClInclude Include="memory.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -6,6 +6,12 @@
 #define NT_GLOBAL_FLAG_CHECK (FLG_HEAP_ENABLE_TAIL_CHECK | FLG_HEAP_ENABLE_FREE_CHECK | FLG_HEAP_VALIDATE_PARAMETERS)
 
 
+//Plan on adding more in the future, currently reads from the PEB for the being debugged flag as well as the NT_GLOBAL
+//to see if the process is being debugged or was spawned under a debugger. Also uses checkremotedebuggerpresent, which
+//calls NtQueryInformationProcess with ProcessDebugPort(0x07) to check for debugger. This function can be easily hooked
+//to hide the presence of a debugger, therefore, I install a hook to counter previous hooks at the beginning of the function
+
+
 PPEB pPeb = (PPEB)__readgsqword(0x60);
 
 void Debugger::DebuggerThread()
@@ -20,6 +26,10 @@ void Debugger::DebuggerThread()
 		Sleep(3000);
 	}
 }
+
+
+//------------------------------------------------------------------------------------------------
+
 
 BOOL Debugger::IsDebuggerAttached()
 {

@@ -1,6 +1,11 @@
 #include "includes.h"
 
 
+//The hooks on this page will consist of a trampoline to restore the functionality of the original functions
+//As long as you pass through an appropriate length for the hook, the below functions will take care of any BYTE restoring
+// and redirects. This gives us total control flow over subsequent functions.
+
+
 //Declarations
 tHLoadLibraryA oLoadLibraryA = nullptr;
 tHLoadLibraryW oLoadLibraryW = nullptr;

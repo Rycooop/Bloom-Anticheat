@@ -3,7 +3,7 @@
 #include <winternl.h>
 #include <thread>
 
-#include "util.h"
+#include "memory.h"
 #include "hook.h"
 #include "report.h"
 #include "debugger.h"

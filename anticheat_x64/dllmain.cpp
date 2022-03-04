@@ -5,11 +5,10 @@
 DWORD WINAPI StartupThread(HMODULE hModule)
 {
     //Console for troubleshooting
-    /*
     AllocConsole();
     FILE* f;
     freopen_s(&f, "conout$", "w", stdout);
-    */
+    
 
     //Start Debugger thread
     HANDLE hDebuggerThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Debugger::DebuggerThread, 0, 0, 0);
@@ -28,7 +27,11 @@ DWORD WINAPI StartupThread(HMODULE hModule)
 
     while (true)
     {
-        Sleep(4000);
+        if (Memory::isBlacklistedModuleFound())
+            Report::SendReport(BLACKLISTED_DLL_DETECTED);
+
+        //Memory::ScanForExecutablePages();
+        Sleep(10000);
     }
 
     return 0;

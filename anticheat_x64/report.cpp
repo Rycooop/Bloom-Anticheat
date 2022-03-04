@@ -1,6 +1,11 @@
 #include "includes.h"
 
 
+//Anything you wish to do once an anomaly is found, such as uploading the file to the server, should be done here. 
+//Ideally, the game/process would not close and you would instead flag/ban the user. In one of the switch cases I will
+//create a struct containing info on the current user such as HWID info, and an example of uploading that to the server
+
+
 void Report::SendReport(DWORD reportCode)
 {
 	AllocConsole();
@@ -40,6 +45,11 @@ void Report::SendReport(DWORD reportCode)
 		case ODD_BAHAVIOR:
 		{
 			std::cout << "[*] Odd process bahavior, possible Manually Mapped module..." << std::endl;
+			break;
+		}
+		case OVERLAY_DETECTED:
+		{
+			std::cout << "[*] Suspicious overlay found above game process, closing..." << std::endl;
 			break;
 		}
 	}
