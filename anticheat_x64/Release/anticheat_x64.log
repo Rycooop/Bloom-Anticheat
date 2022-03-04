@@ -1,5 +1,0 @@
-﻿  debugger.cpp
-C:\Users\Ryan\Desktop\AntiCheat\anticheat_x64\debugger.cpp(19,20): error C3861: '__readgsqword': identifier not found
-  hook.cpp
-  util.cpp
-C:\Users\Ryan\Desktop\AntiCheat\anticheat_x64\util.cpp(6,30): error C3861: '__readgsword': identifier not found
