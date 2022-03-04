@@ -1,0 +1,8 @@
+﻿  debugger.cpp
+  dllmain.cpp
+  Generating code
+  1 of 56 functions ( 1.8%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    5 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  anticheat_x64.vcxproj -> C:\Users\Ryan\Desktop\AntiCheat\x64\Release\anticheat_x64.dll
