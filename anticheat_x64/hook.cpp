@@ -10,6 +10,7 @@
 tHLoadLibraryA oLoadLibraryA = nullptr;
 tHLoadLibraryW oLoadLibraryW = nullptr;
 tHKeyAsyncKeyState oGetAsyncKeyState = nullptr;
+tNtQueryInformationProcess oNtQueryInformationProcess = nullptr;
 
 const char* FuncsToHook[] =
 {
@@ -45,6 +46,7 @@ BOOL Hooks::InstallHooks()
 		oLoadLibraryA = (tHLoadLibraryA)Hooks::Hook((BYTE*)GetProcAddress(hKernelBase, "LoadLibraryA"), (BYTE*)Hooks::hkLoadLibraryA, 5);
 		oLoadLibraryW = (tHLoadLibraryW)Hooks::Hook((BYTE*)GetProcAddress(hKernelBase, "LoadLibraryW"), (BYTE*)Hooks::hkLoadLibraryW, 5);
 		oGetAsyncKeyState = (tHKeyAsyncKeyState)Hooks::Hook((BYTE*)GetProcAddress(hUser32, "GetAsyncKeyState"), (BYTE*)Hooks::hkGetAsyncKeyState, 5);
+		//oNtQueryInformationProcess = (tNtQueryInformationProcess)Hooks::Hook((BYTE*)GetProcAddress(hNtll, "NtQueryInformationProcess"), (BYTE*)Hooks::hkNtQueryInformationProcess, 8);
 	}
 	else return FALSE;
 
@@ -119,4 +121,10 @@ SHORT Hooks::hkGetAsyncKeyState(int vKey)
 		Report::SendReport(ODD_BAHAVIOR);
 
 	return oGetAsyncKeyState(vKey);
+}
+
+//You can play around with this and spoof certain information, really not necessary though since you are already inside the protected process
+NTSTATUS Hooks::hkNtQueryInformationProcess(HANDLE ProcessHandle, PROCESS_INFORMATION_CLASS InfoClass, PVOID ProcessInformation, ULONG ProcessInfoLength, PULONG ReturnLength)
+{
+	return oNtQueryInformationProcess(ProcessHandle, InfoClass, ProcessInformation, ProcessInfoLength, ReturnLength);
 }

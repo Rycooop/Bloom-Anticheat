@@ -5,6 +5,8 @@
 typedef HMODULE(APIENTRY* tHLoadLibraryA)(LPCSTR lpLibFileName);
 typedef HMODULE(APIENTRY* tHLoadLibraryW)(LPCWSTR lpLibFileName);
 typedef SHORT(APIENTRY* tHKeyAsyncKeyState)(int vKey);
+typedef NTSTATUS(*tNtQueryInformationProcess)(HANDLE ProcessHandle, PROCESS_INFORMATION_CLASS InfoClass, PVOID ProcessInformation, ULONG ProcessInfoLength, PULONG ReturnLength);
+
 
 //string arrays
 extern const char* FuncsToHook[];
@@ -21,6 +23,8 @@ namespace Hooks
 	HMODULE hkLoadLibraryA(LPCSTR lpLibFileName);
 	HMODULE hkLoadLibraryW(LPCWSTR lpLibFileName);
 	SHORT hkGetAsyncKeyState(int vKey);
+	NTSTATUS hkNtQueryInformationProcess(HANDLE ProcessHandle, PROCESS_INFORMATION_CLASS InfoClass, PVOID ProcessInformation, ULONG ProcessInfoLength, PULONG ReturnLength);
+
 }
 
 
