@@ -7,7 +7,8 @@ BOOL Handler::TroubleshootError(DWORD errorNum)
 	{
 		case PROCESS_NOT_RUNNING:
 		{
-			
+			std::cout << "[-] Please start the process you want to protect" << std::endl;
+			break;
 		}
 		case PROCESS_INVALID_PROCESSID:
 		{

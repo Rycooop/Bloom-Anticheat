@@ -4,17 +4,20 @@
 #include <thread>
 
 #include "util.h"
+#include "driver.h"
 #include "error.h"
 
 #define PROTECTED_PROCESS L"ac_client.exe"
 
-extern FILE* f;
+typedef NTSTATUS(* tNtLoadDriver)(PUNICODE_STRING DriverServiceName);
 
-
-struct GLOBALS
+typedef struct GLOBALS
 {
 	HANDLE hProcess;
 	DWORD processProcID;
-	BOOL isInjected = FALSE;
-	int error = 0;
-}Globals;
+	BOOL isInjected;
+	int error;
+};
+
+extern GLOBALS Globals;
+extern FILE* f;

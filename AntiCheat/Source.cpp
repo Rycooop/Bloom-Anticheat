@@ -1,7 +1,12 @@
 #include "includes.h"
 #include "memory.h"
 
+
 FILE* f;
+GLOBALS Globals;
+UNICODE_STRING driverPath = { 0 };
+
+tNtLoadDriver oNtLoadDriver;
 
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine, int nCmdShow)
@@ -11,21 +16,32 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 	system("Color 0B");
 	std::cout << "[+] Anticheat Initializing..." << std::endl;
 
+	HMODULE hNtdll = GetModuleHandle(L"ntdll.dll");
+	if (hNtdll == INVALID_HANDLE_VALUE)
+		return 0;
+
+	oNtLoadDriver = (tNtLoadDriver)GetProcAddress(hNtdll, "NtLoadDriver");
+	
+	DriverObject KernelDriver = DriverObject("\\\\.\\achelper_x64");
+	if (!KernelDriver.isConnected())
+	{
+		Handler::TroubleshootError(DRIVER_CONNECTION_ERROR);
+
+		if (!KernelDriver.isConnected())
+		{
+			Handler::ExitWithError(DRIVER_CONNECTION_ERROR);
+		}
+	}
+
+	std::cout << "[+] Driver loaded" << std::endl;
 
 	while (!Util::isProcessRunning(PROTECTED_PROCESS))
 	{
-		if (Globals.error >= 5)
-		{
-			Handler::TroubleshootError(PROCESS_NOT_RUNNING);
-		}
-
-		Sleep(2000);
-		Globals.error++;
+		Handler::TroubleshootError(PROCESS_NOT_RUNNING);
+		Sleep(5000);
 	}
 
-	Globals.processProcID = Util::getRunningProcessId(PROTECTED_PROCESS);
-
-	if (Globals.processProcID == 0)
+	if (!Util::getRunningProcessId(PROTECTED_PROCESS))
 	{
 		if (!Handler::TroubleshootError(PROCESS_INVALID_PROCESSID))
 		{
@@ -49,10 +65,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 		Globals.hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Globals.processProcID);
 	}
 
-	Memory Reader = Memory(Globals.hProcess);
+	std::cout << "[+] Attached to process" << std::endl;
+
+	UNICODE_STRING protectedProcessU = {};
+	//RtlInitUnicodeString(&protectedProcessU, PROTECTED_PROCESS);
+	KernelDriver.protectProcess(protectedProcessU);
+
+	std::cout << "[+] ObRegisterCallbacks in place, stripping handles" << std::endl;
 
 	while (true)
 	{
-		Sleep(2000);
+		Sleep(3000);
 	}
 }
