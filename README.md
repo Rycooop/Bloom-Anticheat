@@ -6,3 +6,5 @@ The DLL can be injected into the game process alone and it will do most of the w
 
 To build:
 in visual studio, select Batch build and build x64 release for each of the three projects
+
+test signing must be on to use the driver, which is automatically loaded from the exe since the driver is not signed
