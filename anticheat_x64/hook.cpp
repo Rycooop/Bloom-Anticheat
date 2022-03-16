@@ -16,7 +16,7 @@ const char* FuncsToHook[] =
 {
 	"LoadLibraryA", "LoadLibraryW",
 	"NtQueryVirtualMemory",
-	"GetAsynkKeyState"
+	"GetAsyncKeyState"
 	"Direct3DCreate9"
 };
 
@@ -117,6 +117,9 @@ HMODULE Hooks::hkLoadLibraryW(LPCWSTR lpLibFileName)
 //Do not use if your game/app uses this function
 SHORT Hooks::hkGetAsyncKeyState(int vKey)
 {
+	if (!Thread::checkReturnAddr(GetCurrentThread()))
+		Report::SendReport(MANUALMAPPED_MODULE);
+
 	if (vKey == VK_INSERT || vKey == VK_F3)
 		Report::SendReport(ODD_BAHAVIOR);
 

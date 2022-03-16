@@ -3,7 +3,11 @@
 
 namespace Debugger
 {
+	//The thread to catch a debugger
 	void DebuggerThread();
-	BOOL IsDebuggerAttached();
+
+	//Debugger detections
+	BOOL ReadPEBForDebugger();
 	BOOL SpawnedUnderDebugger();
+	BOOL CheckDebugString();
 }

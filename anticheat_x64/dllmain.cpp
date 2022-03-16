@@ -1,6 +1,11 @@
 #include "includes.h"
 
 
+//Defining main EXE PE header
+PIMAGE_DOS_HEADER DosHeader;
+PIMAGE_NT_HEADERS NtHeader;
+PIMAGE_FILE_HEADER FileHeader;
+
 
 DWORD WINAPI StartupThread(HMODULE hModule)
 {
@@ -9,6 +14,11 @@ DWORD WINAPI StartupThread(HMODULE hModule)
     FILE* f;
     freopen_s(&f, "conout$", "w", stdout);
     
+    //Get main EXE PE header information
+    PVOID baseAddress = GetModuleHandle(NULL);
+    DosHeader = (PIMAGE_DOS_HEADER)baseAddress;
+    NtHeader = (PIMAGE_NT_HEADERS)((UINT_PTR)baseAddress + DosHeader->e_lfanew);
+    FileHeader = (PIMAGE_FILE_HEADER)&NtHeader->FileHeader;
 
     //Start Debugger thread
     HANDLE hDebuggerThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Debugger::DebuggerThread, 0, 0, 0);
@@ -27,20 +37,13 @@ DWORD WINAPI StartupThread(HMODULE hModule)
 
     while (true)
     {
-        if (Memory::isBlacklistedModuleFound())
-            Report::SendReport(BLACKLISTED_DLL_DETECTED);
-
-        //Memory::ScanForExecutablePages();
-        Sleep(10000);
+        Sleep(6000);
     }
 
     return 0;
 }
 
-BOOL APIENTRY DllMain( HMODULE hModule,
-                       DWORD  ul_reason_for_call,
-                       LPVOID lpReserved
-                     )
+BOOL APIENTRY DllMain( HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
     switch (ul_reason_for_call)
     {

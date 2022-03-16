@@ -13,7 +13,7 @@ void Report::SendReport(DWORD reportCode)
 	freopen_s(&f, "conout$", "w", stdout);
 	system("Color 0C");
 
-	std::cout << "Anticheat has encountered the following issue:\n " << std::endl;
+	std::cout << "Anticheat has encountered the following issue(s):\n " << std::endl;
 
 	switch (reportCode)
 	{

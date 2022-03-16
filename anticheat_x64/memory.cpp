@@ -51,3 +51,29 @@ void* Memory::patternScan(const char* pattern, const char* mask)
 {
 
 }
+
+bool Memory::isValidModuleAddr(PVOID address)
+{
+    static MODULEENTRY32 modEntry;
+    HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetCurrentProcessId());
+
+    if (hSnap == INVALID_HANDLE_VALUE)
+        return false;
+
+    modEntry.dwSize = sizeof(MODULEENTRY32);
+
+    if (!Module32First(hSnap, &modEntry))
+    {
+        return false;
+    }
+
+    if (address >= modEntry.modBaseAddr && address <= modEntry.modBaseAddr + modEntry.modBaseSize)
+
+    while (Module32Next(hSnap, &modEntry))
+    {
+        if (address >= modEntry.modBaseAddr && address <= modEntry.modBaseAddr + modEntry.modBaseSize)
+            return true;
+    }
+
+    return false;
+}
