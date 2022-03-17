@@ -7,7 +7,10 @@ BOOL Handler::TroubleshootError(DWORD errorNum)
 	{
 		case PROCESS_NOT_RUNNING:
 		{
-			std::cout << "[-] Please start the process you want to protect" << std::endl;
+			std::wstring processNotRunningStr = L"[-] Please start ";
+			processNotRunningStr += PROTECTED_PROCESS;
+
+			std::wcout << processNotRunningStr.c_str() << "\r";
 			break;
 		}
 		case PROCESS_INVALID_PROCESSID:
@@ -27,6 +30,10 @@ BOOL Handler::TroubleshootError(DWORD errorNum)
 			if (OpenProcess(PROCESS_VM_READ, FALSE, Globals.processProcID) == INVALID_HANDLE_VALUE)
 				return FALSE;
 			else return TRUE;
+		}
+		case DLL_CANT_LOAD:
+		{
+			break;
 		}
 	}
 

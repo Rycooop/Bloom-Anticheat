@@ -5,9 +5,10 @@
 
 #include "util.h"
 #include "driver.h"
+#include "injection.h"
 #include "error.h"
 
-#define PROTECTED_PROCESS L"ac_client.exe"
+#define PROTECTED_PROCESS	L"notepad.exe"
 
 typedef NTSTATUS(* tNtLoadDriver)(PUNICODE_STRING DriverServiceName);
 
