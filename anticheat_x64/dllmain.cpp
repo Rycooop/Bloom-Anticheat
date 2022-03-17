@@ -10,10 +10,12 @@ PIMAGE_FILE_HEADER FileHeader;
 DWORD WINAPI StartupThread(HMODULE hModule)
 {
     //Console for troubleshooting
+    /*
     AllocConsole();
     FILE* f;
     freopen_s(&f, "conout$", "w", stdout);
-    
+    */
+
     //Get main EXE PE header information
     PVOID baseAddress = GetModuleHandle(NULL);
     DosHeader = (PIMAGE_DOS_HEADER)baseAddress;
@@ -37,6 +39,10 @@ DWORD WINAPI StartupThread(HMODULE hModule)
 
     while (true)
     {
+        if (GetAsyncKeyState(VK_F7) & 1)
+        {
+
+        }
         Sleep(6000);
     }
 

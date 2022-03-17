@@ -58,5 +58,5 @@ bool Thread::checkReturnAddr(HANDLE hThread)
 
 	CaptureStackBackTrace(0, 5, NULL, NULL);
 
-	return false;
+	return true;
 }

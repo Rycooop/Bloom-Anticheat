@@ -12,6 +12,7 @@ void Report::SendReport(DWORD reportCode)
 	FILE* f;
 	freopen_s(&f, "conout$", "w", stdout);
 	system("Color 0C");
+	SetConsoleTitleA("Cheat found");
 
 	std::cout << "Anticheat has encountered the following issue(s):\n " << std::endl;
 

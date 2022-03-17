@@ -10,4 +10,5 @@ namespace Debugger
 	BOOL ReadPEBForDebugger();
 	BOOL SpawnedUnderDebugger();
 	BOOL CheckDebugString();
+	LONG HandleExceptions(PEXCEPTION_POINTERS exceptionInfo);
 }
