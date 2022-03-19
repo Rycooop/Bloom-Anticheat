@@ -5,7 +5,6 @@ FILE* f;
 GLOBALS Globals;
 UNICODE_STRING driverPath = { 0 };
 
-tNtLoadDriver oNtLoadDriver;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine, int nCmdShow)
 {
@@ -48,7 +47,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 		}
 	}
 
-	std::cout << "[+] Attached to process: Process ID: " << Globals.processProcID << std::endl;
+	std::wstring updateString = L"[+] Attached to ";
+	updateString += PROTECTED_PROCESS;
+	updateString += L": Process ID: ";
+	std::wcout << updateString.c_str() << Globals.processProcID << std::endl;
 
 	if (!InjectDLL(Globals.processProcID))
 	{
@@ -60,19 +62,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 	}
 
 	std::cout << "[+] Anticheat DLL injected" << std::endl;
-	while (true)
+
+	if (!Driver::LoadDriver())
 	{
-		Sleep(3000);
+		if (!Handler::TroubleshootError(DRIVER_INVALID_LOAD))
+		{
+			Handler::ExitWithError(DRIVER_INVALID_LOAD);
+			return 0;
+		}
 	}
 
-	//Load the driver and establish communication
 	std::cout << "[+] Preparing Driver..." << std::endl;
 
-	HMODULE hNtdll = GetModuleHandle(L"ntdll.dll");
-	if (hNtdll == INVALID_HANDLE_VALUE)
-		return 0;
-
-	oNtLoadDriver = (tNtLoadDriver)GetProcAddress(hNtdll, "NtLoadDriver");
 
 	std::cout << "[+] Driver loaded" << std::endl;
 
@@ -88,8 +89,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 			Handler::ExitWithError(DRIVER_CONNECTION_ERROR);
 		}
 	}
-
-	std::cout << "[+] Driver connection established..." << std::endl;
+	else
+	{
+		std::cout << "[+] Driver connection established..." << std::endl;
+	}
 
 	while (true)
 	{

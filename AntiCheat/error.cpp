@@ -42,5 +42,22 @@ BOOL Handler::TroubleshootError(DWORD errorNum)
 
 void Handler::ExitWithError(DWORD errorNum)
 {
+	switch (errorNum)
+	{
+		case PROCESS_NOT_RUNNING:
+		{
+			std::cout << "\n\n==========================================================================================\n" << std::endl;
+			std::cout << "		Was unable to find the target process, closing..." << std::endl;
+			break;
+		}
+		case PROCESS_INVALID_PROCESSID:
+		{
+			std::cout << "\n\n==========================================================================================\n" << std::endl;
+			std::cout << "		Was unable to find the target process ID, closing..." << std::endl;
+			break;
+		}
+	}
 
+	Sleep(4000);
+	ExitProcess(0);
 }

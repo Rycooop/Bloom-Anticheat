@@ -139,7 +139,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="driver.cpp" />
     <ClCompile Include="error.cpp" />
+    <ClCompile Include="injection.cpp" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="util.cpp" />
   </ItemGroup>
@@ -147,6 +149,7 @@
     <ClInclude Include="driver.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="includes.h" />
+    <ClInclude Include="injection.h" />
     <ClInclude Include="util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
