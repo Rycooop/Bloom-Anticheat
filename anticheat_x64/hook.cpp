@@ -5,8 +5,13 @@
 //As long as you pass through an appropriate length for the hook, the below functions will take care of any BYTE restoring
 // and redirects. This gives us total control flow over subsequent functions.
 
+//There are many other functions that may be beneficial to hook, but im going to keep it basic in this example. It is CRUCIAL
+//that inside of our integrity check thread we are constantly making sure our hook is in place and the address is pointing
+//to our module, to make sure an attacker did not overwrite our hook to jump to their own version of the function
 
-//Declarations
+
+//Declare the function pointers as well as our functions we want to hook, and our blacklisted modules
+
 tHLoadLibraryA oLoadLibraryA = nullptr;
 tHLoadLibraryW oLoadLibraryW = nullptr;
 tHKeyAsyncKeyState oGetAsyncKeyState = nullptr;
@@ -27,8 +32,11 @@ const char* BlacklistedModules[] =
 };
 
 
-//===========================================================================================
+//=============================================================================================================
 
+
+//Place all of our hooks and redirect them to our version of the function. The only thing here that you will need to change
+//Will be the length of the hook. Make sure you do not cut off the middle of an instruction or the process will crash
 
 BOOL Hooks::InstallHooks()
 {
@@ -59,6 +67,9 @@ void* Hooks::Hook(BYTE* src, BYTE* dst, size_t size)
 	uintptr_t newAddr = (uintptr_t)(src + size);
 	DWORD relAddr = (DWORD)(dst - src - 5);
 
+
+	//
+
 	DWORD gatewayProtect;
 	if (VirtualProtect(newAlloc, size, PAGE_EXECUTE_READWRITE, &gatewayProtect))
 	{
@@ -84,6 +95,8 @@ void* Hooks::Hook(BYTE* src, BYTE* dst, size_t size)
 //=================================================================================================
 
 
+//Check the ASCI version of LoadLibrary to scan for blacklisted modules trying to load
+
 HMODULE Hooks::hkLoadLibraryA(LPCSTR lpLibFileName)
 {
 	//Check if the module attempting to load is a blacklisted one
@@ -99,6 +112,9 @@ HMODULE Hooks::hkLoadLibraryA(LPCSTR lpLibFileName)
 	return oLoadLibraryA(lpLibFileName);
 }
 
+
+//Check the WIDE version of LoadLibrary to scan for blacklisted modules trying to load
+
 HMODULE Hooks::hkLoadLibraryW(LPCWSTR lpLibFileName)
 {
 	for (int i = 0; i < sizeof(BlacklistedModulesW) / sizeof(BlacklistedModulesW[0]); i++)
@@ -113,7 +129,10 @@ HMODULE Hooks::hkLoadLibraryW(LPCWSTR lpLibFileName)
 	return oLoadLibraryW(lpLibFileName);
 }
 
-//Do not use if your game/app uses this function
+
+//Many cheats use GetAsyncKeyState to handle input since it is easy and they dont want to hijack the windows message handler. This can easily
+//catch cheaters. Dont use this if your game uses this function as it will throw a false positive. 
+
 SHORT Hooks::hkGetAsyncKeyState(int vKey)
 {
 	if (!Thread::checkReturnAddr(GetCurrentThread()))
@@ -125,7 +144,9 @@ SHORT Hooks::hkGetAsyncKeyState(int vKey)
 	return oGetAsyncKeyState(vKey);
 }
 
+
 //You can play around with this and spoof certain information, really not necessary though since you are already inside the protected process
+
 NTSTATUS Hooks::hkNtQueryInformationProcess(HANDLE ProcessHandle, PROCESS_INFORMATION_CLASS InfoClass, PVOID ProcessInformation, ULONG ProcessInfoLength, PULONG ReturnLength)
 {
 	return oNtQueryInformationProcess(ProcessHandle, InfoClass, ProcessInformation, ProcessInfoLength, ReturnLength);

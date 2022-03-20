@@ -1,10 +1,17 @@
 #include "includes.h"
 
 
+#define FLAGS_TO_BAN 7
+
 //Anything you wish to do once an anomaly is found, such as uploading the file to the server, should be done here. 
 //Ideally, the game/process would not close and you would instead flag/ban the user. In one of the switch cases I will
 //create a struct containing info on the current user such as HWID info, and an example of uploading that to the server
 
+//As stated before, some of the detection vectors used in this anticheat may throw false positives in specific cases, but
+//of them have been tested and I feel confortable including them in this project
+
+
+uint8_t flags = 0;
 
 void Report::SendReport(DWORD reportCode)
 {

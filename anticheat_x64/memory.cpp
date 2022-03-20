@@ -1,6 +1,9 @@
 #include "includes.h"
 
 
+//Loop to check the memory detections and look for manually mapped modules. This will be effective if a blacklisted module is
+//loaded before the anticheat is loaded, and it will also look for executable pages outside a valid module, indicating
+//that a DLL or shellcode has been put in place
 
 void Memory::ScanMemory()
 {
@@ -22,6 +25,8 @@ void Memory::ScanMemory()
 //================================================================================================================
 
 
+//Scan through the PEB loaded module list looking for blacklisted modules
+
 BOOL Memory::isBlacklistedModuleFound()
 {
     static PPEB pPeb = (PPEB)__readgsword(0x60);
@@ -31,6 +36,9 @@ BOOL Memory::isBlacklistedModuleFound()
 
     return FALSE;
 }
+
+
+//use VirtualQuery to scan through all memory pages within the process and find anomalies
 
 BOOL Memory::ScanForExecutablePages()
 {
@@ -50,12 +58,18 @@ BOOL Memory::ScanForExecutablePages()
     return TRUE;
 }
 
+
+//Pattern scan for known cheat images
+
 void* Memory::patternScan(const char* pattern, const char* mask)
 {
 
 }
 
-bool Memory::isValidModuleAddr(PVOID address)
+
+//Is the address given inside of a valid module 
+
+bool Memory::isValidModuleAddr(uintptr_t address)
 {
     MODULEENTRY32 modEntry;
     HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetCurrentProcessId());
@@ -70,12 +84,12 @@ bool Memory::isValidModuleAddr(PVOID address)
         return false;
     }
 
-    if (address >= modEntry.modBaseAddr && address <= modEntry.modBaseAddr + modEntry.modBaseSize)
+    if (address >= (uintptr_t)modEntry.modBaseAddr && address <= (uintptr_t)modEntry.modBaseAddr + (uintptr_t)modEntry.modBaseSize)
         return true;
 
     while (Module32Next(hSnap, &modEntry))
     {
-        if (address >= modEntry.modBaseAddr && address <= modEntry.modBaseAddr + modEntry.modBaseSize)
+        if (address >= (uintptr_t)modEntry.modBaseAddr && address <= (uintptr_t)modEntry.modBaseAddr + (uintptr_t)modEntry.modBaseSize)
             return true;
     }
 

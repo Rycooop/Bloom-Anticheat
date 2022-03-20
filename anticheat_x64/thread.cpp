@@ -1,6 +1,10 @@
 #include "includes.h"
 
 
+//One good way of monitoring code execution is by Queueing Asynchronous Procedure Calls to every thread running in a process.
+//By doing this we can have our own function execute inside the context of every single thread, which makes it easier for us 
+//to run a stack trace or analyze the stack frames. We must continuously queue APC's every few seconds
+
 DWORD processThreads[100];
 
 //Apc function to be executed on every thread
@@ -13,13 +17,14 @@ PAPCFUNC ApcFunction(ULONG_PTR Arg)
 	{
 		if (isValid == FALSE)
 		{
-			//Report::SendReport(RIP_OUTSIDE_VALID_MODULE);
+			Report::SendReport(RIP_OUTSIDE_VALID_MODULE);
 		}
 	}
 
 	return 0;
 }
-  
+ 
+//Queue the apcs to every thread in the process
 DWORD QueueApcs(PAPCFUNC func)
 {
 	if (!processThreads)
@@ -46,6 +51,8 @@ DWORD QueueApcs(PAPCFUNC func)
 
 //========================================================================================================
 
+
+//Obtain all of the threads currently running in the process using Tlhelp32 THREADENTRY32
 
 BOOL GetProcessThreads()
 {
@@ -78,36 +85,13 @@ BOOL GetProcessThreads()
 	return TRUE;
 }
 
-void scanThreads()
-{
-	if (!processThreads)
-		return;
-
-	//Use an enhanced for loop to scan through all the threads in the thread array
-	for (DWORD currThread : processThreads)
-	{
-		if (!currThread)
-			continue;
-		
-		HANDLE hCurrThread = OpenThread(THREAD_ALL_ACCESS, FALSE, currThread);
-
-		BOOL ripValid = TRUE;
-		if (Thread::checkReturnAddr(hCurrThread))
-		{
-			if (ripValid == FALSE)
-				Report::SendReport(RIP_OUTSIDE_VALID_MODULE);
-		}
-
-		if (hCurrThread)
-			CloseHandle(hCurrThread);
-	}
-}
-
 
 //========================================================================================================
 
 
-//Checks if the instruction pointer of a given thread is currently in a valid module
+//Checks if the instruction pointer of a given thread is currently in a valid module. If unsigned code is
+//Being executed this will return false and we will know shellcode has been injected, or a manually mapped module
+
 bool Thread::isRipValid(HANDLE hThread, PBOOL isValid)
 {
 	STACKFRAME64 sFrame;
@@ -135,7 +119,7 @@ bool Thread::isRipValid(HANDLE hThread, PBOOL isValid)
 	//This isnt necessary but good practice because it obtains a full stack trace of the given thread
 	if (StackWalk64(FileHeader->Machine, GetCurrentProcess(), hThread, &sFrame, &sContext, NULL, NULL, NULL, NULL))
 	{
-		if (Memory::isValidModuleAddr((PVOID)sFrame.AddrPC.Offset))
+		if (Memory::isValidModuleAddr((uintptr_t)sFrame.AddrPC.Offset))
 		{
 			*isValid = TRUE;
 			return true;
@@ -146,6 +130,10 @@ bool Thread::isRipValid(HANDLE hThread, PBOOL isValid)
 	*isValid = FALSE;
 	return true;
 }
+
+
+//Will capture the current thread context and check if the return address is inside of a valid module. This can be called inside the hooked
+//Functions to check for unsigned code
 
 bool Thread::checkReturnAddr(HANDLE hThread)
 {
@@ -166,4 +154,36 @@ bool Thread::checkReturnAddr(HANDLE hThread)
 	CaptureStackBackTrace(0, 5, NULL, NULL);
 
 	return true;
+}
+
+
+//This thread is in charge of running our checks and constantly gathering thread information. We create a thread to execute this function
+//inside the dllmain. Any other checks you want to run on threads should be initialized in here
+
+void Thread::MonitorThreads()
+{
+	BOOL valid = TRUE;
+
+	while (true)
+	{
+		if (valid == FALSE)
+			Report::SendReport(RIP_OUTSIDE_VALID_MODULE);
+
+		//Make sure all threads are up to date
+		GetProcessThreads();
+
+		//Loop through all threads with enhanced for loop
+		for (DWORD pThread : processThreads)
+		{
+			if (!pThread)
+				continue;
+
+			Thread::isRipValid(OpenThread(THREAD_ALL_ACCESS, FALSE, pThread), &valid);
+		}
+
+		//Queue the APCS to all the threads
+		QueueApcs((PAPCFUNC)ApcFunction);
+
+		Sleep(7000);
+	}
 }

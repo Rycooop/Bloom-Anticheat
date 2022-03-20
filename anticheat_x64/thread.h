@@ -11,12 +11,14 @@ DWORD QueueApcs(PAPCFUNC func);
 
 //Obtain all threads in current process
 BOOL GetProcessThreads();
-void scanThreads();
 
 namespace Thread
 {
 	bool isRipValid(HANDLE hThread, PBOOL isValid);
 	bool checkReturnAddr(HANDLE hThread);
+
+	//Thread in charge of queueing apcs and checking RIP
+	void MonitorThreads();
 }
 
 enum APCQUEUE

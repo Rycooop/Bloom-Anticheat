@@ -3,10 +3,10 @@
 
 namespace Debugger
 {
-	//The thread to catch a debugger
+	//The continuous thread that will check our detection techniques and try and spot a debugger
 	void DebuggerThread();
 
-	//Debugger detections
+	//Debugger detections as well as the exception handler
 	BOOL ReadPEBForDebugger();
 	BOOL SpawnedUnderDebugger();
 	BOOL CheckDebugString();
