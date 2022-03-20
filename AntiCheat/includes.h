@@ -1,7 +1,14 @@
+#define _CRT_SECURE_NO_WARNINGS
+#define _WIN32_LEAN_AND_MEAN
+
 #include <Windows.h>
 #include <iostream>
 #include <winternl.h>
 #include <thread>
+#include <string>
+#include <Shlwapi.h>
+
+#pragma comment(lib, "Shlwapi.lib")
 
 #include "util.h"
 #include "driver.h"

@@ -10,6 +10,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 {
 	AllocConsole();
 	freopen_s(&f, "conout$", "w", stdout);
+	freopen_s(&f, "conin$", "r", stdin);
 	system("Color 0B");
 	std::cout << "[+] Anticheat Initializing..." << std::endl;
 
@@ -20,7 +21,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 	while (!Util::isProcessRunning(PROTECTED_PROCESS))
 	{
 		Handler::TroubleshootError(PROCESS_NOT_RUNNING);
-		Sleep(5000);
+		Sleep(500);
 	}
 
 	std::cout << "\n[+] Process Found" << std::endl;
@@ -31,7 +32,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 		{
 			Handler::ExitWithError(PROCESS_INVALID_PROCESSID);
 			return 0;
-		
 		}
 	}
 
@@ -62,6 +62,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 	}
 
 	std::cout << "[+] Anticheat DLL injected" << std::endl;
+
+	while (true)
+		Sleep(2000);
 
 	if (!Driver::LoadDriver())
 	{
