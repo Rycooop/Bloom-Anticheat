@@ -1,10 +1,12 @@
 #include "includes.h"
 
 
-//Try and deal with all errors before exiting
+//Try and deal with all errors before exiting the process and shutting down the driver
+
 BOOL Handler::TroubleshootError(DWORD errorNum)
 {
-	//Self explanatory
+	//If we can handle these cases without shutting down it will be much easier
+
 	switch (errorNum)
 	{
 		case PROCESS_NOT_RUNNING:
@@ -17,6 +19,8 @@ BOOL Handler::TroubleshootError(DWORD errorNum)
 		}
 		case PROCESS_INVALID_PROCESSID:
 		{
+			//Check again to make sure the process is actually running, and grab the processID. This error should never occur
+
 			if (Util::isProcessRunning(PROTECTED_PROCESS))
 			{
 				DWORD procID = Util::getRunningProcessId(PROTECTED_PROCESS);
@@ -35,6 +39,8 @@ BOOL Handler::TroubleshootError(DWORD errorNum)
 		}
 		case DLL_INVALID_PATH:
 		{
+			//Ask for a new dll path and if it is invalid exit with an error
+
 			std::cout << "\nDll path invalid, Enter valid path: ";
 			std::string newPath;
 			std::cin >> newPath;
@@ -61,6 +67,8 @@ BOOL Handler::TroubleshootError(DWORD errorNum)
 //Provide the reason for failure and exit
 void Handler::ExitWithError(DWORD errorNum)
 {
+	//State the reason for error, sleep 4 seconds, then shutdown
+
 	switch (errorNum)
 	{
 		case PROCESS_NOT_RUNNING:

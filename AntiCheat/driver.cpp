@@ -3,10 +3,55 @@
 
 tNtLoadDriver oNtLoadDriver;
 
+const std::wstring driverPath = L"asdas";
+const std::wstring registryPath = L"Windows";
+
+//Create a new registry key for the driver so windows knows how to load the driver
+
+bool Driver::CreateRegistry()
+{
+	//First we must make sure we have privelages to write to the registry, if not, 
+	HANDLE tokenHandle;
+	TOKEN_PRIVILEGES tp;
+	LUID luid;
+	HKEY hKey;
+
+	if (!LookupPrivilegeValue(NULL, SE_LOAD_DRIVER_NAME, &luid))
+		return false;
+
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &tokenHandle))
+		return false;
+
+	tp.PrivilegeCount = 1;
+	tp.Privileges[0].Luid = luid;
+	tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+	if (!AdjustTokenPrivileges(tokenHandle, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), NULL, NULL))
+		return false;
+
+	CloseHandle(tokenHandle);
+
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, registryPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+	{
+		//This would indicate the registry key already exists, so we can just return true
+		return true;
+	}
+
+	if (RegCreateKeyW(hKey, registryPath.c_str(), &hKey) != ERROR_SUCCESS)
+	{
+		//Key was not created
+		return false;
+	}
+
+	return true;
+}
 
 //Start the new service by using NtLoadDriver. There are other methods but im using this since it works well
 bool Driver::LoadDriver()
 {
+	if (!Driver::CreateRegistry())
+		return false;
+
 	std::cout << "[+] Loading Driver..." << std::endl;
 
 	HMODULE hNtdll = GetModuleHandle(L"ntdll.dll");
@@ -15,6 +60,8 @@ bool Driver::LoadDriver()
 
 	//Cast the address of NtLoadDriver to our function pointer so we can call it
 	oNtLoadDriver = (tNtLoadDriver)GetProcAddress(hNtdll, "NtLoadDriver");
+
+	return true;
 }
 
 //Default Constructor for the driver interface takes the service RegistryPath in which to establish communication 

@@ -3,12 +3,14 @@
 
 FILE* f;
 GLOBALS Globals;
-UNICODE_STRING driverPath = { 0 };
 
+//Make sure to change all the paths to where your actual driver file and dll are located, otherwise you will recieve errors
+//The main purpose of this module is just to communicate with the driver, for all usermode detections take a look at the DLL
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine, int nCmdShow)
 {
-	//Allocate a console that can take input in case of errors
+	//Allocate a console that can take input to debug errors, the file pointer will be stored globally
+
 	AllocConsole();
 	freopen_s(&f, "conout$", "w", stdout);
 	freopen_s(&f, "conin$", "r", stdin);
@@ -19,7 +21,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 	consoleName += PROTECTED_PROCESS;
 	SetConsoleTitleW(consoleName.c_str());
 
-	//Wait for the process to be running
+
+	//Wait for the process to be running, if it isnt the error handler will print a message saying to start the process
+
 	while (!Util::isProcessRunning(PROTECTED_PROCESS))
 	{
 		Handler::TroubleshootError(PROCESS_NOT_RUNNING);
@@ -28,7 +32,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 
 	std::cout << "\n[+] Process Found" << std::endl;
 
+
 	//Obtain the protected ProcessId
+
 	if (!Util::getRunningProcessId(PROTECTED_PROCESS))
 	{
 		if (!Handler::TroubleshootError(PROCESS_INVALID_PROCESSID))
@@ -38,11 +44,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 		}
 	}
 
-	//Set our globals
+	//Store some of our variables globally since we will need them to monitor the protected process
 	Globals.processProcID = Util::getRunningProcessId(PROTECTED_PROCESS);
 	Globals.hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, Globals.processProcID);
 
+
 	//Make sure valid handle has been established
+
 	if (Globals.hProcess == INVALID_HANDLE_VALUE)
 	{
 		if (!Handler::TroubleshootError(PROCESS_INVALID_HANDLE))
@@ -57,7 +65,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 	updateString += L": Process ID: ";
 	std::wcout << updateString.c_str() << Globals.processProcID << std::endl;
 
-	//Inject dll to target process
+
+	//Inject dll to target process via a simple loadlibraryA injector. This is where all the usermode detection vectors are. This is critical in ensuring
+	//The anticheat detects cheats
+
 	if (!InjectDLL(Globals.processProcID))
 	{
 		if (!Handler::TroubleshootError(DLL_CANT_LOAD))
@@ -66,13 +77,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 			return 0;
 		}
 	}
-
 	std::cout << "[+] Anticheat DLL injected" << std::endl;
+
 
 	while (true)
 		Sleep(2000);
 
-	//Load the driver
+	//Create a registry path and load the driver using the undocumented NtLoadDriver(). Test signing MUST be enabled unless your driver is signed
+	//If you are not interested in using the driver just inject the DLL manually and do not worry about this module
+
 	if (!Driver::LoadDriver())
 	{
 		if (!Handler::TroubleshootError(DRIVER_INVALID_LOAD))
@@ -81,10 +94,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 			return 0;
 		}
 	}
-
-	std::cout << "[+] Preparing Driver..." << std::endl;
-
-
 	std::cout << "[+] Driver loaded" << std::endl;
 
 
@@ -99,10 +108,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 			Handler::ExitWithError(DRIVER_CONNECTION_ERROR);
 		}
 	}
-	else
-	{
-		std::cout << "[+] Driver connection established..." << std::endl;
-	}
+	std::cout << "[+] Driver connection established..." << std::endl;
+
 
 	while (true)
 	{

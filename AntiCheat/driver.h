@@ -11,10 +11,16 @@
 
 #endif
 
+//Create a function pointer for the functions needed to work with a driver
+typedef NTSTATUS(*tNtLoadDriver)(PUNICODE_STRING DriverServiceName);
+
+extern const std::wstring driverPath;
+extern const std::wstring registryPath;
 
 //Loading and unloading the driver
 namespace Driver
 {
+	bool CreateRegistry();
 	bool LoadDriver();
 }
 

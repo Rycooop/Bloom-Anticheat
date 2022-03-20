@@ -18,9 +18,6 @@
 
 #define PROTECTED_PROCESS	L"notepad.exe"
 
-//Create a function pointer for the functions needed to work with a driver
-typedef NTSTATUS(* tNtLoadDriver)(PUNICODE_STRING DriverServiceName);
-
 //Global information that will be needed for the process
 typedef struct GLOBALS
 {
