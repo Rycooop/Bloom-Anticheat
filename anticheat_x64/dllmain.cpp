@@ -10,29 +10,37 @@ PIMAGE_FILE_HEADER FileHeader;
 DWORD WINAPI StartupThread(HMODULE hModule)
 {
     //Console for troubleshooting
-    /*
+    
     AllocConsole();
     FILE* f;
     freopen_s(&f, "conout$", "w", stdout);
-    */
-
+    
     //Get main EXE PE header information
     PVOID baseAddress = GetModuleHandle(NULL);
     DosHeader = (PIMAGE_DOS_HEADER)baseAddress;
     NtHeader = (PIMAGE_NT_HEADERS)((UINT_PTR)baseAddress + DosHeader->e_lfanew);
     FileHeader = (PIMAGE_FILE_HEADER)&NtHeader->FileHeader;
 
-    //Start Debugger thread
-    HANDLE hDebuggerThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Debugger::DebuggerThread, 0, 0, 0);
-    if (hDebuggerThread == INVALID_HANDLE_VALUE)
+    if (!Hooks::InstallHooks())
     {
-        CloseHandle(hDebuggerThread);
-
-        std::thread debuggerThread(Debugger::DebuggerThread);
-        debuggerThread.detach();
+        Report::SendReport(INVALID_ANTICHEAT_START);
     }
 
-    if (!Hooks::InstallHooks())
+    //Start Debugger thread
+    HANDLE hDebuggerThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Debugger::DebuggerThread, 0, 0, 0);
+    HANDLE hMemoryThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Memory::ScanMemory, 0, 0, 0);
+
+    if (hDebuggerThread == INVALID_HANDLE_VALUE)
+    {
+        Report::SendReport(INVALID_ANTICHEAT_START);
+    }
+
+    if (hMemoryThread == INVALID_HANDLE_VALUE)
+    {
+        Report::SendReport(INVALID_ANTICHEAT_START);
+    }
+
+    if (!GetProcessThreads())
     {
         Report::SendReport(INVALID_ANTICHEAT_START);
     }
@@ -41,8 +49,8 @@ DWORD WINAPI StartupThread(HMODULE hModule)
     {
         if (GetAsyncKeyState(VK_F7) & 1)
         {
-
         }
+
         Sleep(6000);
     }
 

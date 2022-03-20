@@ -23,15 +23,11 @@ const char* FuncsToHook[] =
 const char* BlacklistedModules[] =
 {
 	"cheat.dll", "aimbot.dll", "esp.dll", "hack.dll"
-};
-
-const wchar_t* BlacklistedModulesW[] =
-{
-	L"cheat.dll", L"aimbot.dll", L"esp.dll", L"hack.dll"
+	"dll.dll", "csgo.dll", "ac.dll", "battleye.dll"
 };
 
 
-//------------------------------------------------------------------------------------
+//===========================================================================================
 
 
 BOOL Hooks::InstallHooks()
@@ -57,6 +53,9 @@ void* Hooks::Hook(BYTE* src, BYTE* dst, size_t size)
 {
 	//Create a trampoline hook to automatically restore stolen bytes
 	BYTE* newAlloc = (BYTE*)VirtualAlloc(0, size + 10, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+	if (!newAlloc)
+		return NULL;
+
 	uintptr_t newAddr = (uintptr_t)(src + size);
 	DWORD relAddr = (DWORD)(dst - src - 5);
 
@@ -82,13 +81,13 @@ void* Hooks::Hook(BYTE* src, BYTE* dst, size_t size)
 }
 
 
-//------------------------------------------------------------------------------------------------
+//=================================================================================================
 
 
 HMODULE Hooks::hkLoadLibraryA(LPCSTR lpLibFileName)
 {
 	//Check if the module attempting to load is a blacklisted one
-	for (int i = 0; i < sizeof(BlacklistedModules) / sizeof(*BlacklistedModules); i++)
+	for (int i = 0; i < sizeof(BlacklistedModules) / sizeof(BlacklistedModules[0]); i++)
 	{
 		if (strstr(lpLibFileName, BlacklistedModules[i]))
 		{
@@ -102,7 +101,7 @@ HMODULE Hooks::hkLoadLibraryA(LPCSTR lpLibFileName)
 
 HMODULE Hooks::hkLoadLibraryW(LPCWSTR lpLibFileName)
 {
-	for (int i = 0; i < sizeof(BlacklistedModulesW) / sizeof(*BlacklistedModulesW); i++)
+	for (int i = 0; i < sizeof(BlacklistedModulesW) / sizeof(BlacklistedModulesW[0]); i++)
 	{
 		if (wcsstr(lpLibFileName, BlacklistedModulesW[i]))
 		{

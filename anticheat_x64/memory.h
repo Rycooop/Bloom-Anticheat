@@ -3,6 +3,8 @@
 
 namespace Memory
 {
+	void ScanMemory();
+
 	BOOL isBlacklistedModuleFound();
 	BOOL ScanForExecutablePages();
 	void* patternScan(const char* pattern, const char* mask);

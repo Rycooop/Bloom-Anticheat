@@ -11,7 +11,7 @@ typedef NTSTATUS(*tNtQueryInformationProcess)(HANDLE ProcessHandle, PROCESS_INFO
 //string arrays
 extern const char* FuncsToHook[];
 extern const char* BlacklistedModules[];
-extern const wchar_t* BlacklistedModulesW[];
+inline const wchar_t* BlacklistedModulesW[] = { L"cheat.dll", L"aimbot.dll", L"esp.dll", L"hack.dll" };
 
 namespace Hooks
 {

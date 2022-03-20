@@ -12,7 +12,7 @@ void Report::SendReport(DWORD reportCode)
 	FILE* f;
 	freopen_s(&f, "conout$", "w", stdout);
 	system("Color 0C");
-	SetConsoleTitleA("Cheat found");
+	SetConsoleTitleA("Attention!");
 
 	std::cout << "Anticheat has encountered the following issue(s):\n " << std::endl;
 
@@ -21,6 +21,11 @@ void Report::SendReport(DWORD reportCode)
 		case INVALID_ANTICHEAT_START:
 		{
 			std::cout << "[*] Anticheat DLL failed to initialize correctly, closing..." << std::endl;
+			break;
+		}
+		case CANNOT_QUEUE_APCS:
+		{
+			std::cout << "[*] Anticheat was unable to queue APC's to process thread, closing..." << std::endl;
 			break;
 		}
 		case MANUALMAPPED_MODULE:
@@ -51,6 +56,11 @@ void Report::SendReport(DWORD reportCode)
 		case OVERLAY_DETECTED:
 		{
 			std::cout << "[*] Suspicious overlay found above game process, closing..." << std::endl;
+			break;
+		}
+		case RIP_OUTSIDE_VALID_MODULE:
+		{
+			std::cout << "[*] Instruction Pointer has been detected outside a valid module" << std::endl;
 			break;
 		}
 	}
