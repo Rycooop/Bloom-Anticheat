@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 #define _WIN32_LEAN_AND_MEAN
 
+//Define needed headers and libraries
 #include <Windows.h>
 #include <iostream>
 #include <winternl.h>
@@ -17,8 +18,10 @@
 
 #define PROTECTED_PROCESS	L"notepad.exe"
 
+//Create a function pointer for the functions needed to work with a driver
 typedef NTSTATUS(* tNtLoadDriver)(PUNICODE_STRING DriverServiceName);
 
+//Global information that will be needed for the process
 typedef struct GLOBALS
 {
 	HANDLE hProcess;
@@ -27,5 +30,6 @@ typedef struct GLOBALS
 	int error;
 };
 
+//Define the globals
 extern GLOBALS Globals;
 extern FILE* f;

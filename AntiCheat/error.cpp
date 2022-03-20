@@ -1,8 +1,10 @@
 #include "includes.h"
 
 
+//Try and deal with all errors before exiting
 BOOL Handler::TroubleshootError(DWORD errorNum)
 {
+	//Self explanatory
 	switch (errorNum)
 	{
 		case PROCESS_NOT_RUNNING:
@@ -56,6 +58,7 @@ BOOL Handler::TroubleshootError(DWORD errorNum)
 	return FALSE;
 }
 
+//Provide the reason for failure and exit
 void Handler::ExitWithError(DWORD errorNum)
 {
 	switch (errorNum)

@@ -1,8 +1,10 @@
 #include "util.h"
 
 
+//Check if process is running
 BOOL Util::isProcessRunning(LPCWSTR processName)
 {
+	//Use ToolHelp32 to enumerate all running processes on the system
 	HANDLE hSnap;
 	PROCESSENTRY32 procEntry;
 
@@ -29,6 +31,7 @@ BOOL Util::isProcessRunning(LPCWSTR processName)
 	return false;
 }
 
+//Obtain a process ID for a given process
 DWORD Util::getRunningProcessId(LPCWSTR processName)
 {
 	HANDLE hSnap;

@@ -2,6 +2,14 @@
 #include <iostream>
 
 
+//The main error handling system
+namespace Handler
+{
+	BOOL TroubleshootError(DWORD errorNum);
+	void ExitWithError(DWORD errorNum);
+}
+
+//Enum of all possible errors the Anticheat may encounter, used to troubleshoot
 enum ERRORS
 {
 	PROCESS_NOT_RUNNING = 0,
@@ -16,9 +24,3 @@ enum ERRORS
 	DRIVER_INVALID_LOAD,
 	DRIVER_NO_COMMUNICATION
 };
-
-namespace Handler
-{
-	BOOL TroubleshootError(DWORD errorNum);
-	void ExitWithError(DWORD errorNum);
-}
