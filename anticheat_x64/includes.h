@@ -13,6 +13,7 @@
 
 #include "memory.h"
 #include "thread.h"
+#include "overlay.h"
 #include "hook.h"
 #include "report.h"
 #include "debugger.h"

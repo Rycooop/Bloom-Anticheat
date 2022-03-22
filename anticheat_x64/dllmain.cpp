@@ -41,8 +41,9 @@ DWORD WINAPI StartupThread(HMODULE hModule)
     HANDLE hDebuggerThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Debugger::DebuggerThread, 0, 0, 0);
     HANDLE hMemoryThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Memory::ScanMemory, 0, 0, 0);
     HANDLE hThreadMonitor = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Thread::MonitorThreads, 0, 0, 0);
+    HANDLE hOverlayThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Overlay::OverlayThread, 0, 0, 0);
 
-    if (hDebuggerThread == INVALID_HANDLE_VALUE || hMemoryThread == INVALID_HANDLE_VALUE || hThreadMonitor == INVALID_HANDLE_VALUE)
+    if (hDebuggerThread == INVALID_HANDLE_VALUE || hMemoryThread == INVALID_HANDLE_VALUE || hThreadMonitor == INVALID_HANDLE_VALUE || hOverlayThread == INVALID_HANDLE_VALUE)
     {
         Report::SendReport(INVALID_ANTICHEAT_START);
     }

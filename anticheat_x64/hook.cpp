@@ -16,6 +16,7 @@ tHLoadLibraryA oLoadLibraryA = nullptr;
 tHLoadLibraryW oLoadLibraryW = nullptr;
 tHKeyAsyncKeyState oGetAsyncKeyState = nullptr;
 tNtQueryInformationProcess oNtQueryInformationProcess = nullptr;
+tCreateWindowExA oCreateWindowExA = nullptr;
 
 const char* FuncsToHook[] =
 {
@@ -51,6 +52,7 @@ BOOL Hooks::InstallHooks()
 		oLoadLibraryW = (tHLoadLibraryW)Hooks::Hook((BYTE*)GetProcAddress(hKernelBase, "LoadLibraryW"), (BYTE*)Hooks::hkLoadLibraryW, 5);
 		oGetAsyncKeyState = (tHKeyAsyncKeyState)Hooks::Hook((BYTE*)GetProcAddress(hUser32, "GetAsyncKeyState"), (BYTE*)Hooks::hkGetAsyncKeyState, 5);
 		//oNtQueryInformationProcess = (tNtQueryInformationProcess)Hooks::Hook((BYTE*)GetProcAddress(hNtll, "NtQueryInformationProcess"), (BYTE*)Hooks::hkNtQueryInformationProcess, 8);
+		//oCreateWindowExA = (tCreateWindowExA)Hooks::Hook((BYTE*))
 	}
 	else return FALSE;
 
@@ -150,4 +152,31 @@ SHORT Hooks::hkGetAsyncKeyState(int vKey)
 NTSTATUS Hooks::hkNtQueryInformationProcess(HANDLE ProcessHandle, PROCESS_INFORMATION_CLASS InfoClass, PVOID ProcessInformation, ULONG ProcessInfoLength, PULONG ReturnLength)
 {
 	return oNtQueryInformationProcess(ProcessHandle, InfoClass, ProcessInformation, ProcessInfoLength, ReturnLength);
+}
+
+
+//A lot of cheat developers that are internal are too lazy to hijack the current window and create their overlay, so they instead create their own window
+//within the context of the process to avoid anticheats from enumerating it. By hooking the create window functions, we can monitor any suspicous windows
+//that may have been created from within our protected process
+
+HWND Hooks::hkCreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int x, int y, int width, int height, HWND nHwndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam)
+{
+	if (!ProcessMainWindow)
+		goto exit;
+
+	//check to see the extended window values
+	if ((dwExStyle == WS_EX_TRANSPARENT && dwExStyle == WS_EX_LAYERED) || dwExStyle == WS_EX_TOPMOST)
+	{
+		RECT rect = { 0 };
+		GetWindowRect(ProcessMainWindow, &rect);
+
+		//Check if the window being created is around the same size as the main window
+		if (width >= (int)((rect.right - rect.left) * .9) && height >= (int)((rect.bottom - rect.top) * .9))
+		{
+			Report::SendReport(OVERLAY_DETECTED);
+		}
+	}
+
+exit:
+	return CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, width, height, nHwndParent, hMenu, hInstance, lpParam);
 }
