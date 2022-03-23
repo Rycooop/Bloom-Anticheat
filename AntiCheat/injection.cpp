@@ -7,7 +7,7 @@ std::string dllPath;
 BOOL InjectDLL(DWORD procID)
 {
 	//Path of anticheat_x64.dll, not relative
-	dllPath = "C:\\Users\\rycoo\\Desktop\\full-anticheat-main\\x64\\Release\\anticheat_x64.dll";
+	dllPath = "C:\\Users\\rycoo\\Desktop\\full-anticheat-main\\x64\\Release\\AnticheatDLL.dll";
 
 	//If the given dll path is not valid
 	if (!PathFileExistsA(dllPath.c_str()))
@@ -44,4 +44,14 @@ BOOL InjectDLL(DWORD procID)
 		CloseHandle(hProc);
 
 	return TRUE;
+}
+
+BOOL InjectLSASS()
+{
+
+}
+
+BOOL InjectCSRSS()
+{
+
 }
