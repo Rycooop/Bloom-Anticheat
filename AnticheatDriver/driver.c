@@ -23,7 +23,16 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	pDriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = IoControl;
 	pDriverObject->DriverUnload = UnloadDriver;
 
+	if (DeviceObject)
+	{
+		DeviceObject->Flags |= DO_DIRECT_IO;
+		DeviceObject->Flags &= ~DO_DEVICE_INITIALIZING;
+	}
+
+	RegisterObCallbacks();
+
 	PsSetLoadImageNotifyRoutine((PLOAD_IMAGE_NOTIFY_ROUTINE)ImageLoadCallback);
+	PsSetCreateProcessNotifyRoutine((PCREATE_PROCESS_NOTIFY_ROUTINE)ProcessCreateCallback, FALSE);
 	
 	return STATUS_SUCCESS;
 }
@@ -32,7 +41,14 @@ NTSTATUS UnloadDriver(PDRIVER_OBJECT pDriverObject)
 {
 	UNREFERENCED_PARAMETER(pDriverObject);
 
+	IoDeleteDevice(DeviceObject);
+	IoDeleteSymbolicLink(&Dos);
+
+	if (ObRegistrationHandle)
+		ObUnRegisterCallbacks(ObRegistrationHandle);
+
 	PsRemoveLoadImageNotifyRoutine((PLOAD_IMAGE_NOTIFY_ROUTINE)ImageLoadCallback);
+	PsSetCreateProcessNotifyRoutine((PCREATE_PROCESS_NOTIFY_ROUTINE)ProcessCreateCallback, TRUE);
 
 	return STATUS_SUCCESS;
 }

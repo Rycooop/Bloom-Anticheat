@@ -5,8 +5,108 @@
 WCHAR* blacklistedModules[20] = { L"iqvw64e.sys" };
 
 
-//==================================================================================================================================
+//Define variables and structures we will need for ObRegisterCallbacks()
+OB_OPERATION_REGISTRATION OperationRegistration;
+OB_CALLBACK_REGISTRATION CallbackRegistration;
+PVOID ObRegistrationHandle;
 
+
+//One of the greatest things about having a driver is the abillity to register callbacks ranging from dealing with Non-maskable interupts, to
+//image loading of any type. The main functionality of our driver will be held within our callbacks. We will call ObRegisterCallbacks on our
+//protected process, as well as our AntiCheat process to prevent anyone in usermode from tampering with them. We will also check for any abused
+//drivers being loaded on the system while the driver is running :)
+
+
+//Setup the callback registration structs and call ObRegisterCallbacks. Here we will define a callback for Process handles but
+//you can create another one to monitor thread(this may be added in the future)
+
+NTSTATUS RegisterObCallbacks()
+{
+	ULONG ProcessID = 2264;
+	if (NT_SUCCESS(PsLookupProcessByProcessId((HANDLE)ProcessID, &ProtectedProcesses[0])))
+		DbgPrintEx(0, 0, "Notepad found\n");
+
+	RtlSecureZeroMemory(&OperationRegistration, sizeof(OB_OPERATION_REGISTRATION));
+	RtlSecureZeroMemory(&CallbackRegistration, sizeof(OB_CALLBACK_REGISTRATION));
+
+	UNICODE_STRING callbackAltitude;
+	RtlInitUnicodeString(&callbackAltitude, L"1986");
+
+	OperationRegistration.ObjectType = PsProcessType;
+	OperationRegistration.Operations |= OB_OPERATION_HANDLE_CREATE;
+	OperationRegistration.Operations |= OB_OPERATION_HANDLE_DUPLICATE;
+	OperationRegistration.PreOperation = PreOperationCallback;
+	OperationRegistration.PostOperation = NULL;
+
+	CallbackRegistration.Version = OB_FLT_REGISTRATION_VERSION;
+	CallbackRegistration.Altitude = callbackAltitude;
+	CallbackRegistration.OperationRegistrationCount = 1;
+	CallbackRegistration.RegistrationContext = NULL;
+	CallbackRegistration.OperationRegistration = &OperationRegistration;
+
+	return ObRegisterCallbacks(&CallbackRegistration, &ObRegistrationHandle);
+}
+
+
+//Our callback function that will be called everytime something tries to create a handle. We will filter this out to only monitor the processes
+//we care about and want to protect
+
+OB_PREOP_CALLBACK_STATUS PreOperationCallback(PVOID RegistrationContext, POB_PRE_OPERATION_INFORMATION OpInfo)
+{ 
+	UNREFERENCED_PARAMETER(RegistrationContext);
+	ASSERT(OpInfo->CallContext == NULL);
+
+	ACCESS_MASK BitsToClear = 0;
+	ACCESS_MASK BitsToSet = 0;
+	PACCESS_MASK DesiredAccess = NULL;
+
+	if (OpInfo->ObjectType == *PsProcessType)
+	{
+		if (ProtectedProcesses[0] == NULL || ( ProtectedProcesses[0] != NULL && OpInfo->Object != ProtectedProcesses[0]))
+			return OB_PREOP_SUCCESS;
+
+		if (OpInfo->Object == PsGetCurrentProcess())
+		{
+			//handle being opened from the protected process
+		}
+
+		BitsToClear = PROCESS_ALL_ACCESS;
+		BitsToSet = DELETE;
+	}
+	else goto Exit;
+
+	switch (OpInfo->Operation)
+	{
+		case OB_OPERATION_HANDLE_CREATE:
+		{
+			DesiredAccess = &OpInfo->Parameters->CreateHandleInformation.DesiredAccess;
+			break;
+		}
+		case OB_OPERATION_HANDLE_DUPLICATE:
+		{
+			DesiredAccess = &OpInfo->Parameters->DuplicateHandleInformation.DesiredAccess;
+			break;
+		}
+		default:
+			ASSERT(FALSE);
+			break;
+	}
+
+	if (OpInfo->KernelHandle != 1)
+	{
+		*DesiredAccess &= ~BitsToClear;
+		*DesiredAccess |= BitsToSet;
+	}
+
+Exit:
+	return OB_PREOP_SUCCESS;
+}
+
+
+//=======================================================================================================================================
+
+
+//This callback will be executed on any image load. We can see if any blacklisted modules are loaded such as commonly abused drivers
 
 PLOAD_IMAGE_NOTIFY_ROUTINE ImageLoadCallback(PUNICODE_STRING FullImageName, HANDLE ProcessId, PIMAGE_INFO ImageInfo)
 {
@@ -15,7 +115,7 @@ PLOAD_IMAGE_NOTIFY_ROUTINE ImageLoadCallback(PUNICODE_STRING FullImageName, HAND
 	UNREFERENCED_PARAMETER(ImageInfo);
 
 	//If our anticheat is loaded again(should be handled in usermode but just in case)
-	if (wcsstr(FullImageName->Buffer, L"AntiCheat"))
+	if (wcsstr(FullImageName->Buffer, L"AntiCheat.exe"))
 	{
 		PEPROCESS pEprocess;
 		KAPC_STATE State;
@@ -31,12 +131,24 @@ PLOAD_IMAGE_NOTIFY_ROUTINE ImageLoadCallback(PUNICODE_STRING FullImageName, HAND
 	//Loop through all our blacklisted modules and prevent loading
 	for (int i = 0; i < sizeof(blacklistedModules) / sizeof(blacklistedModules[0]); i++)
 	{
+		if (blacklistedModules[i] == NULL)
+			break;
+
 		if (wcsstr(FullImageName->Buffer, blacklistedModules[i]))
 		{
 			//Handle blacklisted module load here
 
 		}
 	}
+	
+	return STATUS_SUCCESS;
+}
+
+PCREATE_PROCESS_NOTIFY_ROUTINE ProcessCreateCallback(HANDLE ParentID, HANDLE ProcessID, BOOLEAN Create)
+{
+	UNREFERENCED_PARAMETER(ParentID);
+	UNREFERENCED_PARAMETER(ProcessID);
+	UNREFERENCED_PARAMETER(Create);
 
 	return STATUS_SUCCESS;
 }

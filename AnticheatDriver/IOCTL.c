@@ -1,6 +1,9 @@
 #include "includes.h"
 
 
+ULONG ProtectedProcessIDs[2];
+PEPROCESS ProtectedProcesses[2];
+
 //All of our device major functions to deal with our IOCTL Requests will be put in here. Create call and close call are used per every call, while
 //IoControl is what decides what to do with the given code. In this function we will handle all IOCTL codes
 
@@ -42,6 +45,19 @@ NTSTATUS IoControl(PDEVICE_OBJECT pDeviceObject, PIRP Irp)
 	if (ControlCode == IO_STARTUPREQUEST)
 	{
 
+	}
+	else if (ControlCode == IO_PROTECTEDPROCESSINFO)
+	{
+		PKERNEL_REQUEST Request = (PKERNEL_REQUEST)Irp->AssociatedIrp.SystemBuffer;
+		if (NT_SUCCESS(PsLookupProcessByProcessId((HANDLE)Request->ProcessIDs[0], &ProtectedProcesses[0])) && NT_SUCCESS(PsLookupProcessByProcessId((HANDLE)Request->ProcessIDs[1], &ProtectedProcesses[1])))
+		{
+			RegisterObCallbacks();
+			Request->Buffer = 1;
+		}
+		else Request->Buffer = 0;
+
+		Status = STATUS_SUCCESS;
+		BytesIo = sizeof(KERNEL_REQUEST);
 	}
 
 	Irp->IoStatus.Status = Status;
