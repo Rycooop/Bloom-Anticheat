@@ -4,6 +4,7 @@
 FILE* f;
 GLOBALS Globals;
 
+
 //Make sure to change all the paths to where your actual driver file and dll are located, otherwise you will recieve errors
 //The main purpose of this module is just to communicate with the driver, for all usermode detections take a look at the DLL
 
@@ -20,13 +21,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 	std::wstring consoleName = L"Anticheat currently protecting: ";
 	consoleName += PROTECTED_PROCESS;
 	SetConsoleTitleW(consoleName.c_str());
-
-	if (!Util::EscalatePrivelages())
-	{
-		std::cout << "[-] Cannot gain driver load privelages, try again";
-		Sleep(4000);
-		return 0;
-	}
 
 	//Wait for the process to be running, if it isnt the error handler will print a message saying to start the process
 
@@ -106,7 +100,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 			Handler::ExitWithError(DRIVER_CANT_PROTECT);
 		}
 	}
-	std::cout << "[+] Processes protected by ObRegisterCallbacks()!" << std::endl;
 
 
 	//Inject dll to target process via a simple loadlibraryA injector. This is where all the usermode detection vectors are. This is critical in ensuring
@@ -120,12 +113,18 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 			return 0;
 		}
 	}
-	std::cout << "[+] Anticheat DLL injected" << std::endl;
 
 
-
-	while (true)
+	while (Util::isProcessRunning(PROTECTED_PROCESS))
 	{
 		Sleep(3000);
 	}
+	system("CLS");
+	std::cout << "[+] Cleaning up..." << std::endl;
+
+	KernelDriver.Shutdown();
+	Driver::Cleanup();
+
+	Sleep(3000);
+	return 0;
 }

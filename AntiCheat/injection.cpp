@@ -3,11 +3,16 @@
 
 //Anticheat dll file path here
 std::string dllPath;
+BOOL injectDLL = FALSE;
+
 
 BOOL InjectDLL(DWORD procID)
 {
+	if (!injectDLL)
+		return TRUE;
+
 	//Path of anticheat_x64.dll, not relative
-	dllPath = "C:\\Users\\Ryan\\Desktop\\full-anticheat-main\\x64\\Release\\AnticheatDLL.dll";
+	dllPath = "full\\dll\\path\\here";
 
 	//If the given dll path is not valid
 	if (!PathFileExistsA(dllPath.c_str()))
@@ -43,6 +48,7 @@ BOOL InjectDLL(DWORD procID)
 	if (hProc)
 		CloseHandle(hProc);
 
+	std::cout << "[+] Anticheat DLL injected" << std::endl;
 	return TRUE;
 }
 

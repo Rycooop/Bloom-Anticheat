@@ -40,6 +40,18 @@ bool Driver::CreateRegistry()
 //Start the new service by using NtLoadDriver. There are other methods but im using this since it works well
 bool Driver::LoadDriver()
 {
+	if (!Util::EscalatePrivelages())
+	{
+		Handler::ExitWithError(CANT_ESCALATE_PRIV);
+	}
+
+	/*
+	if (!PathFileExistsA("\\SystemRoot\\System32\\drivers\\AnticheatDriver.sys"))
+	{
+		Handler::ExitWithError(DRIVER_BAD_PATH);
+	}
+	*/
+
 	if (!Driver::CreateRegistry())
 	{
 		return false;
@@ -64,13 +76,34 @@ bool Driver::LoadDriver()
 	{
 		return false;
 	}
+	Sleep(1000);
 	std::cout << "[+] Driver Loaded!" << std::endl;
 
 	return true;
 }
 
+bool Driver::Cleanup()
+{
+	std::wstring loadRegPath = L"\\Registry\\Machine\\System\\CurrentControlSet\\Services\\anticheatdriver";
 
-//============================================================================================================================
+	UNICODE_STRING regPath;
+	RtlInitUnicodeString(&regPath, loadRegPath.c_str());
+
+	if (NT_SUCCESS(oNtUnloadDriver(&regPath)))
+		std::cout << "[+] Driver unloaded" << std::endl;;
+
+	HKEY hKey;
+	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, registryPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
+	{
+		SHDeleteKeyW(HKEY_LOCAL_MACHINE, registryPath.c_str());
+	}
+	std::cout << "[+] Registry paths cleaned..." << std::endl;
+
+	return true;
+}
+
+
+//==============================================================================================================================
 
 
 //Default Constructor for the driver interface takes the service RegistryPath in which to establish communication 
@@ -98,10 +131,7 @@ BOOL DriverObject::isConnected()
 //Cleanup the driver before unloading it
 void DriverObject::Shutdown()
 {
-	UNICODE_STRING regPath;
-	RtlInitUnicodeString(&regPath, registryPath.c_str());
-
-	oNtUnloadDriver(&regPath);
+	
 }
 
 //Send a message to the driver telling it to use ObRegisterCallbacks on any handle created for that process
@@ -117,6 +147,7 @@ BOOL DriverObject::protectProcesses(ULONG ProcessIDS[2])
 		if (Request.Buffer == 1)
 		{
 			this->isProcessProtected = TRUE;
+			std::cout << "[+] Processes protected by ObRegisterCallbacks!" << std::endl;
 			return TRUE;
 		}
 		else return FALSE;

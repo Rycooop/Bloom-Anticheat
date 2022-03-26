@@ -23,6 +23,7 @@ namespace Driver
 {
 	bool CreateRegistry();
 	bool LoadDriver();
+	bool Cleanup();
 }
 
 

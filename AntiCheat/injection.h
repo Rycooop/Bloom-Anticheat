@@ -4,6 +4,7 @@
 
 //information needed for the injector
 extern std::string dllPath;
+extern BOOL injectDLL;
 
 //All DLL related functions
 BOOL InjectDLLs(DWORD ProtectedProcessID);

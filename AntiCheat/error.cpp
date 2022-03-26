@@ -77,6 +77,12 @@ void Handler::ExitWithError(DWORD errorNum)
 			std::cout << "		Was unable to find the target process, shutting down..." << std::endl;
 			break;
 		}
+		case CANT_ESCALATE_PRIV:
+		{
+			std::cout << "\n\n==========================================================================================\n" << std::endl;
+			std::cout << "		Was unable to escalate privelages to load driver, shutting down" << std::endl;
+			break;
+		}
 		case PROCESS_INVALID_PROCESSID:
 		{
 			std::cout << "\n\n==========================================================================================\n" << std::endl;
@@ -89,8 +95,20 @@ void Handler::ExitWithError(DWORD errorNum)
 			std::cout << "		Anticheat DLL path was invalid, shutting down..." << std::endl;
 			break;
 		}
+		case DRIVER_BAD_PATH:
+		{
+			std::cout << "\n\n==========================================================================================\n" << std::endl;
+			std::cout << "		Driver path invalid or not in System32\\drivers folder, shutting down..." << std::endl;
+			break;
+		}
+		case DRIVER_INVALID_LOAD:
+		{
+			std::cout << "\n\n==========================================================================================\n" << std::endl;
+			std::cout << "		Could not load driver, make sure test signing is enabled" << std::endl;
+			break;
+		}
 	}
 
-	Sleep(4000);
+	Sleep(5000);
 	ExitProcess(0);
 }
