@@ -22,10 +22,6 @@ PVOID ObRegistrationHandle;
 
 NTSTATUS RegisterObCallbacks()
 {
-	ULONG ProcessID = 2264;
-	if (NT_SUCCESS(PsLookupProcessByProcessId((HANDLE)ProcessID, &ProtectedProcesses[0])))
-		DbgPrintEx(0, 0, "Notepad found\n");
-
 	RtlSecureZeroMemory(&OperationRegistration, sizeof(OB_OPERATION_REGISTRATION));
 	RtlSecureZeroMemory(&CallbackRegistration, sizeof(OB_CALLBACK_REGISTRATION));
 
@@ -62,7 +58,7 @@ OB_PREOP_CALLBACK_STATUS PreOperationCallback(PVOID RegistrationContext, POB_PRE
 
 	if (OpInfo->ObjectType == *PsProcessType)
 	{
-		if (ProtectedProcesses[0] == NULL || ( ProtectedProcesses[0] != NULL && OpInfo->Object != ProtectedProcesses[0]))
+		if (ProtectedProcesses[0] == NULL || ( ProtectedProcesses[0] != NULL && OpInfo->Object != ProtectedProcesses[0]) || (ProtectedProcesses[1] != NULL && OpInfo->Object != ProtectedProcesses[1]))
 			return OB_PREOP_SUCCESS;
 
 		if (OpInfo->Object == PsGetCurrentProcess())
@@ -92,6 +88,7 @@ OB_PREOP_CALLBACK_STATUS PreOperationCallback(PVOID RegistrationContext, POB_PRE
 			break;
 	}
 
+	//IF the handle is being created in the kernel, ignore it, otherwise strip it of PROCESS_ALL_ACCESS
 	if (OpInfo->KernelHandle != 1)
 	{
 		*DesiredAccess &= ~BitsToClear;

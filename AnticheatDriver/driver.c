@@ -5,10 +5,12 @@ UNICODE_STRING Dev, Dos;
 PDEVICE_OBJECT DeviceObject;
 
 NTSTATUS UnloadDriver(PDRIVER_OBJECT pDriverObject);
+HANDLE hThread;
 
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath)
 {
+	DbgPrintEx(0, 0, "Drive rloaded\n");
 	UNREFERENCED_PARAMETER(pDriverObject);
 	UNREFERENCED_PARAMETER(pRegistryPath);
 
@@ -29,7 +31,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 		DeviceObject->Flags &= ~DO_DEVICE_INITIALIZING;
 	}
 
-	RegisterObCallbacks();
+	//PsCreateSystemThread(&hThread, THREAD_ALL_ACCESS, NULL, NULL, NULL, (PKSTART_ROUTINE)kPrint, DeviceObject);
 
 	PsSetLoadImageNotifyRoutine((PLOAD_IMAGE_NOTIFY_ROUTINE)ImageLoadCallback);
 	PsSetCreateProcessNotifyRoutine((PCREATE_PROCESS_NOTIFY_ROUTINE)ProcessCreateCallback, FALSE);

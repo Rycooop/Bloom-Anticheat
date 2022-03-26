@@ -145,10 +145,10 @@
     <Link>
       <AdditionalOptions>/INTEGRITYCHECK %(AdditionalOptions)</AdditionalOptions>
     </Link>
+    <DriverSign>
+      <FileDigestAlgorithm>SHA256</FileDigestAlgorithm>
+    </DriverSign>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <Inf Include="AnticheatDriver.inf" />
-  </ItemGroup>
   <ItemGroup>
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
@@ -161,6 +161,9 @@
     <ClInclude Include="callbacks.h" />
     <ClInclude Include="includes.h" />
     <ClInclude Include="IOCTL.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Inf Include="AnticheatDriver.inf" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -42,16 +42,26 @@ NTSTATUS IoControl(PDEVICE_OBJECT pDeviceObject, PIRP Irp)
 	PIO_STACK_LOCATION Stack = IoGetCurrentIrpStackLocation(Irp);
 	ULONG ControlCode = Stack->Parameters.DeviceIoControl.IoControlCode;
 
+	//Handle our IOCTL codes here
 	if (ControlCode == IO_STARTUPREQUEST)
 	{
+		PKERNEL_REQUEST Request = (PKERNEL_REQUEST)Irp->AssociatedIrp.SystemBuffer;
 
+		//Send the number 4 to the buffer so the usermode application knows the driver is operation normally
+		Request->Buffer = 4;
+
+		Status = STATUS_SUCCESS;
+		BytesIo = sizeof(KERNEL_REQUEST);
 	}
 	else if (ControlCode == IO_PROTECTEDPROCESSINFO)
 	{
 		PKERNEL_REQUEST Request = (PKERNEL_REQUEST)Irp->AssociatedIrp.SystemBuffer;
 		if (NT_SUCCESS(PsLookupProcessByProcessId((HANDLE)Request->ProcessIDs[0], &ProtectedProcesses[0])) && NT_SUCCESS(PsLookupProcessByProcessId((HANDLE)Request->ProcessIDs[1], &ProtectedProcesses[1])))
 		{
-			RegisterObCallbacks();
+			//If we are updating the processes to protect we dont want to create a new callback
+			if (!ObRegistrationHandle)
+				RegisterObCallbacks();
+	
 			Request->Buffer = 1;
 		}
 		else Request->Buffer = 0;

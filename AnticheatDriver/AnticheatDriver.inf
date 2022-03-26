@@ -4,8 +4,8 @@
 
 [Version]
 Signature="$WINDOWS NT$"
-Class=Sample ; TODO: edit Class
-ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD5171} ; TODO: edit ClassGuid
+Class=asd ; TODO: edit Class
+ClassGuid={78A1C341-4539-11d3-B88D-00C04FAD9171} ; TODO: edit ClassGuid
 Provider=%ManufacturerName%
 CatalogFile=AnticheatDriver.cat
 DriverVer= ; TODO: set DriverVer in stampinf property pages
@@ -17,12 +17,6 @@ AnticheatDriver_Device_CoInstaller_CopyFiles = 11
 
 ; ================= Class section =====================
 
-[ClassInstall32]
-Addreg=SampleClassReg
-
-[SampleClassReg]
-HKR,,,0,%ClassName%
-HKR,,Icon,,-5
 
 [SourceDisksNames]
 1 = %DiskName%,,,""
