@@ -1,5 +1,5 @@
 # Bloom Anticheat
-Once loaded, the driver will use ObRegisterCallbacks to register a callback and protect the anticheat process as well as the game process
+Once loaded, the driver will use ObRegisterCallbacks to protect the anticheat process as well as the game process
 
 The DLL can be injected into the game process alone and it will do most of the work, otherwise the EXE will load the DLL into the process you want to protect as well as load and communicate with the driver.
 
