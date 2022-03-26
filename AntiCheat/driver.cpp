@@ -1,47 +1,38 @@
 #include "includes.h"
 
+#pragma comment(lib, "ntdll.lib")
+
 
 tNtLoadDriver oNtLoadDriver;
+tNtUnloadDriver oNtUnloadDriver;
 
-const std::wstring driverPath = L"asdas";
-const std::wstring registryPath = L"Windows";
+LPCSTR driverPath = "\\SystemRoot\\System32\\drivers\\AnticheatDriver.sys";
+std::wstring registryPath = L"System\\CurrentControlSet\\Services\\anticheatdriver";
 
 //Create a new registry key for the driver so windows knows how to load the driver
 
 bool Driver::CreateRegistry()
-{
-	//First we must make sure we have privelages to write to the registry, if not, 
-	HANDLE tokenHandle;
-	TOKEN_PRIVILEGES tp;
-	LUID luid;
+{	
 	HKEY hKey;
-
-	if (!LookupPrivilegeValue(NULL, SE_LOAD_DRIVER_NAME, &luid))
-		return false;
-
-	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &tokenHandle))
-		return false;
-
-	tp.PrivilegeCount = 1;
-	tp.Privileges[0].Luid = luid;
-	tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
-
-	if (!AdjustTokenPrivileges(tokenHandle, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), NULL, NULL))
-		return false;
-
-	CloseHandle(tokenHandle);
-
 	if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, registryPath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS)
 	{
 		//This would indicate the registry key already exists, so we can just return true
 		return true;
 	}
 
-	if (RegCreateKeyW(hKey, registryPath.c_str(), &hKey) != ERROR_SUCCESS)
+	if (RegCreateKeyW(HKEY_LOCAL_MACHINE, registryPath.c_str(), &hKey) != ERROR_SUCCESS)
 	{
 		//Key was not created
 		return false;
 	}
+
+	DWORD dwData = 1;
+	RegSetValueExA(hKey, "Type", 0, REG_DWORD, (BYTE*)&dwData, 4u);
+	RegSetValueExA(hKey, "ErrorControl", 0, REG_DWORD, (BYTE*)&dwData, 4u);
+
+	dwData = 3;
+	RegSetValueExA(hKey, "Start", 0, REG_DWORD, (BYTE*)&dwData, 4u);
+	RegSetValueExA(hKey, "ImagePath", 0, REG_SZ, (const BYTE*)driverPath, strlen(driverPath) + 1);
 
 	return true;
 }
@@ -50,7 +41,9 @@ bool Driver::CreateRegistry()
 bool Driver::LoadDriver()
 {
 	if (!Driver::CreateRegistry())
+	{
 		return false;
+	}
 
 	std::cout << "[+] Loading Driver..." << std::endl;
 
@@ -60,24 +53,42 @@ bool Driver::LoadDriver()
 
 	//Cast the address of NtLoadDriver to our function pointer so we can call it
 	oNtLoadDriver = (tNtLoadDriver)GetProcAddress(hNtdll, "NtLoadDriver");
+	oNtUnloadDriver = (tNtUnloadDriver)GetProcAddress(hNtdll, "NtUnloadDriver");
+	
+	std::wstring loadRegPath = L"\\Registry\\Machine\\System\\CurrentControlSet\\Services\\anticheatdriver";
+
+	UNICODE_STRING regPath;
+	RtlInitUnicodeString(&regPath, loadRegPath.c_str());
+
+	if (!NT_SUCCESS(oNtLoadDriver(&regPath)))
+	{
+		return false;
+	}
+	std::cout << "[+] Driver Loaded!" << std::endl;
 
 	return true;
 }
 
+
+//============================================================================================================================
+
+
 //Default Constructor for the driver interface takes the service RegistryPath in which to establish communication 
-DriverObject::DriverObject(LPCSTR RegistryPath)
+DriverObject::DriverObject()
 {
-	hDriver = CreateFileA(RegistryPath, GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, 0, 0);
+	hDriver = CreateFileA("\\\\.\\acDriverDevice", GENERIC_ALL, FILE_SHARE_READ | FILE_SHARE_WRITE, 0, OPEN_EXISTING, 0, 0);
 }
 
 //Check communication with the driver by sending a request and recieving the correct key back
 BOOL DriverObject::isConnected()
 {
-	ULONG buff = 0;
+	KERNEL_REQUEST Request;
+	ZeroMemory(&Request, sizeof(KERNEL_REQUEST));
+	Request.Buffer = 0;
 
-	if (DeviceIoControl(this->hDriver, IO_ISCONNECTED, &buff, sizeof(buff), 0, 0, NULL, NULL))
+	if (DeviceIoControl(this->hDriver, IO_STARTUPREQUEST, &Request, sizeof(Request), &Request, sizeof(Request), NULL, NULL))
 	{
-		if (buff == 4)
+		if (Request.Buffer == 4)
 			return TRUE;
 		else return FALSE;
 	}
@@ -87,12 +98,30 @@ BOOL DriverObject::isConnected()
 //Cleanup the driver before unloading it
 void DriverObject::Shutdown()
 {
+	UNICODE_STRING regPath;
+	RtlInitUnicodeString(&regPath, registryPath.c_str());
 
+	oNtUnloadDriver(&regPath);
 }
 
 //Send a message to the driver telling it to use ObRegisterCallbacks on any handle created for that process
-VOID DriverObject::protectProcess(UNICODE_STRING processName)
+BOOL DriverObject::protectProcesses(ULONG ProcessIDS[2])
 {
+	KERNEL_REQUEST Request;
+	ZeroMemory(&Request, sizeof(KERNEL_REQUEST));
+	Request.ProcessIDs[0] = ProcessIDS[0];
+	Request.ProcessIDs[1] = ProcessIDS[1];
+
+	if (DeviceIoControl(this->hDriver, IO_PROTECTEDPROCESSINFO, &Request, sizeof(Request), &Request, sizeof(Request), NULL, NULL))
+	{
+		if (Request.Buffer == 1)
+		{
+			this->isProcessProtected = TRUE;
+			return TRUE;
+		}
+		else return FALSE;
+	}
+	else return FALSE;
 
 }
 

@@ -6,16 +6,17 @@
 #include <windef.h>
 
 //Define the IO Control codes
-#define IO_ISCONNECTED CTL_CODE(FILE_DEVICE_UNKNOWN, 0x999, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
-#define IO_STARTUPREQUEST CTL_CODE(FILE_DEVICE_UNKNOWN, 0x1000, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
+#define IO_STARTUPREQUEST CTL_CODE(FILE_DEVICE_UNKNOWN, 0x1003, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
+#define IO_PROTECTEDPROCESSINFO CTL_CODE(FILE_DEVICE_UNKNOWN, 0x1004, METHOD_BUFFERED, FILE_SPECIAL_ACCESS)
 
 #endif
 
 //Create a function pointer for the functions needed to work with a driver
 typedef NTSTATUS(*tNtLoadDriver)(PUNICODE_STRING DriverServiceName);
+typedef NTSTATUS(*tNtUnloadDriver)(PUNICODE_STRING DriverServiceName);
 
-extern const std::wstring driverPath;
-extern const std::wstring registryPath;
+extern LPCSTR driverPath;
+extern std::wstring registryPath;
 
 //Loading and unloading the driver
 namespace Driver
@@ -34,11 +35,19 @@ private:
 
 public:
 
-	DriverObject(LPCSTR RegistryPath);
+	DriverObject();
 
 	BOOL isConnected();
 	void Shutdown();
 
-	VOID protectProcess(UNICODE_STRING processName);
+	BOOL protectProcesses(ULONG ProcessIDS[2]);
 	BOOL areProcessesProtected();
 };
+
+
+//Communication Structure with Kernel
+typedef struct _KERNEL_REQUEST
+{
+	ULONG ProcessIDs[2];
+	ULONG Buffer;
+}KERNEL_REQUEST, * PKERNEL_REQUEST;

@@ -21,6 +21,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 	consoleName += PROTECTED_PROCESS;
 	SetConsoleTitleW(consoleName.c_str());
 
+	if (!Util::EscalatePrivelages())
+	{
+		std::cout << "[-] Cannot gain driver load privelages, try again";
+		Sleep(4000);
+		return 0;
+	}
 
 	//Wait for the process to be running, if it isnt the error handler will print a message saying to start the process
 
@@ -59,11 +65,48 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 			return 0;
 		}
 	}
-
 	std::wstring updateString = L"[+] Attached to ";
 	updateString += PROTECTED_PROCESS;
 	updateString += L": Process ID: ";
 	std::wcout << updateString.c_str() << Globals.processProcID << std::endl;
+
+
+	//Create a registry path and load the driver using the undocumented NtLoadDriver(). Test signing MUST be enabled unless your driver is signed
+	//If you are not interested in using the driver just inject the DLL manually and do not worry about this module
+
+	if (!Driver::LoadDriver())
+	{
+		if (!Handler::TroubleshootError(DRIVER_INVALID_LOAD))
+		{
+			Handler::ExitWithError(DRIVER_INVALID_LOAD);
+			return 0;
+		}
+	}
+
+	//Create a driver interface and establish communication with driver
+	DriverObject KernelDriver = DriverObject();
+	if (!KernelDriver.isConnected())
+	{
+		Handler::TroubleshootError(DRIVER_CONNECTION_ERROR);
+
+		if (!KernelDriver.isConnected())
+		{
+			Handler::ExitWithError(DRIVER_CONNECTION_ERROR);
+		}
+	}
+	std::cout << "[+] Driver connection established..." << std::endl;
+
+	ULONG ProcessIDs[2] = { GetCurrentProcessId(), Globals.processProcID };
+	if (!KernelDriver.protectProcesses(ProcessIDs))
+	{
+		Handler::TroubleshootError(DRIVER_CANT_PROTECT);
+
+		if (!KernelDriver.protectProcesses(ProcessIDs))
+		{
+			Handler::ExitWithError(DRIVER_CANT_PROTECT);
+		}
+	}
+	std::cout << "[+] Processes protected by ObRegisterCallbacks()!" << std::endl;
 
 
 	//Inject dll to target process via a simple loadlibraryA injector. This is where all the usermode detection vectors are. This is critical in ensuring
@@ -79,36 +122,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 	}
 	std::cout << "[+] Anticheat DLL injected" << std::endl;
 
-
-	while (true)
-		Sleep(2000);
-
-	//Create a registry path and load the driver using the undocumented NtLoadDriver(). Test signing MUST be enabled unless your driver is signed
-	//If you are not interested in using the driver just inject the DLL manually and do not worry about this module
-
-	if (!Driver::LoadDriver())
-	{
-		if (!Handler::TroubleshootError(DRIVER_INVALID_LOAD))
-		{
-			Handler::ExitWithError(DRIVER_INVALID_LOAD);
-			return 0;
-		}
-	}
-	std::cout << "[+] Driver loaded" << std::endl;
-
-
-	//Create a driver interface and establish communication with driver
-	DriverObject KernelDriver = DriverObject("\\\\.\\achelper_x64");
-	if (!KernelDriver.isConnected())
-	{
-		Handler::TroubleshootError(DRIVER_CONNECTION_ERROR);
-
-		if (!KernelDriver.isConnected())
-		{
-			Handler::ExitWithError(DRIVER_CONNECTION_ERROR);
-		}
-	}
-	std::cout << "[+] Driver connection established..." << std::endl;
 
 
 	while (true)

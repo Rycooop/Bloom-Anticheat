@@ -1,6 +1,30 @@
 #include "util.h"
 
 
+BOOL Util::EscalatePrivelages()
+{
+	HANDLE tokenHandle;
+	TOKEN_PRIVILEGES tp;
+	LUID luid;
+
+	if (!LookupPrivilegeValue(NULL, SE_LOAD_DRIVER_NAME, &luid))
+		return FALSE;
+
+	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES, &tokenHandle))
+		return FALSE;
+
+	tp.PrivilegeCount = 1;
+	tp.Privileges[0].Luid = luid;
+	tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
+
+	if (!AdjustTokenPrivileges(tokenHandle, FALSE, &tp, sizeof(TOKEN_PRIVILEGES), NULL, NULL))
+		return FALSE;
+
+	CloseHandle(tokenHandle);
+	return TRUE;
+}
+
+
 //Check if process is running
 BOOL Util::isProcessRunning(LPCWSTR processName)
 {
