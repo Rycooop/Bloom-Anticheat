@@ -10,7 +10,7 @@ HANDLE hThread;
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath)
 {
-	DbgPrintEx(0, 0, "Drive rloaded\n");
+	DbgPrintEx(0, 0, "Driver Loaded\n");
 	UNREFERENCED_PARAMETER(pDriverObject);
 	UNREFERENCED_PARAMETER(pRegistryPath);
 

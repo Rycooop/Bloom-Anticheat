@@ -2,7 +2,7 @@
 
 
 //kdmapper uses iqvw64e.sys, so if someone manually maps a driver while the anticheat is running it will be detected automatically
-WCHAR* blacklistedModules[20] = { L"iqvw64e.sys" };
+WCHAR* blacklistedModules[20] = { L"iqvw64e.sys", L"kdmapper.exe"};
 
 
 //Define variables and structures we will need for ObRegisterCallbacks()
@@ -58,12 +58,12 @@ OB_PREOP_CALLBACK_STATUS PreOperationCallback(PVOID RegistrationContext, POB_PRE
 
 	if (OpInfo->ObjectType == *PsProcessType)
 	{
-		if (ProtectedProcesses[0] == NULL || ( ProtectedProcesses[0] != NULL && OpInfo->Object != ProtectedProcesses[0]) || (ProtectedProcesses[1] != NULL && OpInfo->Object != ProtectedProcesses[1]))
+		if (ProtectedProcesses[0] == NULL || ( ProtectedProcesses[0] != NULL && OpInfo->Object != ProtectedProcesses[0]) && (ProtectedProcesses[1] != NULL && OpInfo->Object != ProtectedProcesses[1]))
 			return OB_PREOP_SUCCESS;
 
 		if (OpInfo->Object == PsGetCurrentProcess())
 		{
-			//handle being opened from the protected process
+			return OB_PREOP_SUCCESS;
 		}
 
 		BitsToClear = PROCESS_ALL_ACCESS;
@@ -133,8 +133,7 @@ PLOAD_IMAGE_NOTIFY_ROUTINE ImageLoadCallback(PUNICODE_STRING FullImageName, HAND
 
 		if (wcsstr(FullImageName->Buffer, blacklistedModules[i]))
 		{
-			//Handle blacklisted module load here
-
+			DbgPrintEx(0, 0, "Vulnerable driver loaded\n");
 		}
 	}
 	

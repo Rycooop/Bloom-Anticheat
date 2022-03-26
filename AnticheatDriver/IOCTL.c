@@ -59,6 +59,7 @@ NTSTATUS IoControl(PDEVICE_OBJECT pDeviceObject, PIRP Irp)
 		if (NT_SUCCESS(PsLookupProcessByProcessId((HANDLE)Request->ProcessIDs[0], &ProtectedProcesses[0])) && NT_SUCCESS(PsLookupProcessByProcessId((HANDLE)Request->ProcessIDs[1], &ProtectedProcesses[1])))
 		{
 			//If we are updating the processes to protect we dont want to create a new callback
+			DbgPrintEx(0, 0, "Process IDS %i %i", Request->ProcessIDs[0], Request->ProcessIDs[1]);
 			if (!ObRegistrationHandle)
 				RegisterObCallbacks();
 	
