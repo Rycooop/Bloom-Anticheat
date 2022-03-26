@@ -15,6 +15,7 @@ DWORD WINAPI StartupThread(HMODULE hModule)
     AllocConsole();
     FILE* f;
     freopen_s(&f, "conout$", "w", stdout);
+    SetConsoleTitleA("Debug");
     
 
     //Obtain information on the PE header of the executable. This will be used to traverse the module list

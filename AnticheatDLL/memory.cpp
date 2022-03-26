@@ -11,12 +11,13 @@ void Memory::ScanMemory()
 
     while (true)
     {
+        /*
         if (Memory::isBlacklistedModuleFound())
         {
             Report::SendReport(BLACKLISTED_DLL_DETECTED);
             break;
         }
-
+        */
         Sleep(7000);
     }
 }
@@ -29,10 +30,34 @@ void Memory::ScanMemory()
 
 BOOL Memory::isBlacklistedModuleFound()
 {
-    static PPEB pPeb = (PPEB)__readgsword(0x60);
-    int numBlacklistedMods = sizeof(BlacklistedModulesW) / sizeof(BlacklistedModulesW[0]);
-    
-    PPEB_LDR_DATA pebLdr = pPeb->Ldr;
+    HANDLE hSnap;
+    MODULEENTRY32 modEntry;
+    hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPMODULE | TH32CS_SNAPMODULE32, GetCurrentProcessId());
+
+    if (hSnap == INVALID_HANDLE_VALUE)
+        return FALSE;
+
+    modEntry.dwSize = sizeof(MODULEENTRY32);
+
+    if (!Module32First(hSnap, &modEntry))
+    {
+        return FALSE;
+    }
+
+    for (int i = 0; i < sizeof(BlacklistedModulesW) / sizeof(BlacklistedModulesW[0]); i++)
+    {
+        if (wcsstr(modEntry.szModule, BlacklistedModulesW[i]))
+            return TRUE;
+    }
+
+    while (Module32Next(hSnap, &modEntry))
+    {
+        for (int i = 0; i < sizeof(BlacklistedModulesW) / sizeof(BlacklistedModulesW[0]); i++)
+        {
+            if (wcsstr(modEntry.szModule, BlacklistedModulesW[i]))
+                return TRUE;
+        }
+    }
 
     return FALSE;
 }
