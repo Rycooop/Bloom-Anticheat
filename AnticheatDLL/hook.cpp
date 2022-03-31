@@ -134,7 +134,7 @@ HMODULE Hooks::hkLoadLibraryW(LPCWSTR lpLibFileName)
 
 SHORT Hooks::hkGetAsyncKeyState(int vKey)
 {
-	if (!Thread::checkReturnAddr(GetCurrentThread()))
+	if (!Thread::WalkStack(GetCurrentThread()))
 		Report::SendReport(MANUALMAPPED_MODULE);
 
 	if (vKey == VK_INSERT || vKey == VK_F3)

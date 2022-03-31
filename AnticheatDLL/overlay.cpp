@@ -12,6 +12,8 @@ HWND ProcessMainWindow = NULL;
 char windowName[255];
 int windowWidth, windowHeight, windowX, windowY;
 
+const char* blacklistedWindowNames[] = { "CheatOverlay", "ESP window"};
+
 //Constantly enumerate all windows on the system and look for suspicious ones
 
 void Overlay::OverlayThread()
@@ -19,10 +21,21 @@ void Overlay::OverlayThread()
 	while (true)
 	{
 		EnumWindows(Overlay::EnumerateWindows, NULL);
+
+		for (const char* currWindow : blacklistedWindowNames)
+		{
+			if (FindWindowA(NULL, currWindow))
+				Report::SendReport(OVERLAY_DETECTED);
+		}
+
 		Sleep(5000);
 	}
 }
  
+
+//============================================================================================================
+
+
 //Checks the extended window attributes as well as the size and location of the window to decide if it should report
 
 BOOL Overlay::IsSuspiciousWindow(HWND hwnd)

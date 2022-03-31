@@ -21,6 +21,12 @@ PAPCFUNC ApcFunction(ULONG_PTR Arg)
 		}
 	}
 
+
+	//This will check where each thread came from, if outside of a valid module it will submit a report
+
+	if (!Thread::checkPrevAddr(GetCurrentThread()))
+		Report::SendReport(RIP_OUTSIDE_VALID_MODULE);
+
 	return 0;
 }
  
@@ -131,35 +137,48 @@ bool Thread::isRipValid(HANDLE hThread, PBOOL isValid)
 	return true;
 }
 
-
-//Will capture the current thread context and check if the return address is inside of a valid module. This can be called inside the hooked
-//Functions to check for unsigned code
-
-bool Thread::checkReturnAddr(HANDLE hThread)
+bool Thread::checkPrevAddr(HANDLE hThread)
 {
-	CONTEXT sContext;
-	ZeroMemory(&sContext, sizeof(CONTEXT));
+	PVOID stackTrace[1] = { 0 };
 
-	if (GetThreadId(hThread) == GetCurrentThreadId())
+	if (RtlCaptureStackBackTrace(0, 1, stackTrace, NULL))
 	{
-		RtlCaptureContext(&sContext);
-	}
-	else
-	{
-		SuspendThread(hThread);
-		GetThreadContext(hThread, &sContext);
-		ResumeThread(hThread);
-	}
-
-	PVOID stackTrace[10];
-
-	if (RtlCaptureStackBackTrace(0, 10, stackTrace, NULL))
-	{
-
+		if (!Memory::isValidModuleAddr((uintptr_t)stackTrace[0]))
+			return false;
 	}
 
 	return true;
 }
+
+
+//Will initiate a stack trace and log up to the previous 10 stack frames. If any of the return addresses are not from a valid module,
+//the function will return false and a report will be submitted for RIP_OUTSIDE_VALID_MODULE
+
+//this is EXTREMELY efficient in catching manually mapped modules as at some point, the cheat thread will call a function and we can
+//immidiately catch the return address as being outside a valid module. To do further checks, you could VirtualQuery the address and
+//upload the whole module or function to your server
+
+bool Thread::WalkStack(HANDLE hThread)
+{
+	PVOID stackTrace[MAX_TRACE_DEPTH] = { 0 };
+
+	if (RtlCaptureStackBackTrace(0, MAX_TRACE_DEPTH, stackTrace, NULL))
+	{
+		for (PVOID currRetAddr : stackTrace)
+		{
+			if (!currRetAddr)
+				continue;
+
+			if (!Memory::isValidModuleAddr((uintptr_t)currRetAddr))
+				return false;
+		}
+	}
+
+	return true;
+}
+
+
+//=================================================================================================================
 
 
 //This thread is in charge of running our checks and constantly gathering thread information. We create a thread to execute this function
@@ -177,14 +196,6 @@ void Thread::MonitorThreads()
 		//Make sure all threads are up to date
 		GetProcessThreads();
 
-		//Loop through all threads with enhanced for loop
-		for (DWORD pThread : processThreads)
-		{
-			if (!pThread)
-				continue;
-
-			Thread::isRipValid(OpenThread(THREAD_ALL_ACCESS, FALSE, pThread), &valid);
-		}
 
 		//Queue the APCS to all the threads
 		QueueApcs((PAPCFUNC)ApcFunction);

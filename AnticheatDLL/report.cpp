@@ -16,7 +16,6 @@ uint8_t flags = 0;
 void Report::SendReport(DWORD reportCode)
 {
 	AllocConsole();
-	FILE* f;
 	freopen_s(&f, "conout$", "w", stdout);
 	system("Color 0C");
 	SetConsoleTitleA("Attention!");
@@ -28,6 +27,11 @@ void Report::SendReport(DWORD reportCode)
 		case INVALID_ANTICHEAT_START:
 		{
 			std::cout << "[*] Anticheat DLL failed to initialize correctly, closing..." << std::endl;
+			break;
+		}
+		case INTEGRITY_CHECK_VIOLATION:
+		{
+			std::cout << "[*] One or more integrity checks have failed, closing..." << std::endl;
 			break;
 		}
 		case CANNOT_QUEUE_APCS:

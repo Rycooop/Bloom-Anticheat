@@ -11,13 +11,12 @@ void Memory::ScanMemory()
 
     while (true)
     {
-        /*
         if (Memory::isBlacklistedModuleFound())
         {
             Report::SendReport(BLACKLISTED_DLL_DETECTED);
             break;
         }
-        */
+        
         Sleep(7000);
     }
 }
@@ -72,14 +71,8 @@ BOOL Memory::ScanForExecutablePages()
     freopen_s(&f, "conout$", "w", stdout);
 
     MEMORY_BASIC_INFORMATION memInfo;
-    
-    for (int i = 0; i < 1000; i++)
-    {
-        VirtualQuery((LPVOID)(i * 4096), &memInfo, sizeof(MEMORY_BASIC_INFORMATION));
+    VirtualQuery(0, &memInfo, 4096);
 
-        std::cout << "Executable page: " << memInfo.AllocationBase << "  " << memInfo.Protect << std::endl;
-    }
-   
     return TRUE;
 }
 

@@ -39,7 +39,7 @@ void Debugger::DebuggerThread()
 			Report::SendReport(DEBUGGER_DETECTED);
 		}
 
-		Sleep(5000);
+		Sleep(4000);
 
 		//Destroy the handler to re-register a new one as top priority
 		if (exceptionHandle)
@@ -80,7 +80,7 @@ BOOL Debugger::SpawnedUnderDebugger()
 BOOL Debugger::CheckDebugString()
 {
 	SetLastError(0);
-	OutputDebugString(L"hello debugger!");
+	OutputDebugString(L"Hello Debugger!");
 
 	if (GetLastError() != 0)
 		return TRUE;

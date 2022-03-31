@@ -15,7 +15,9 @@
 #include <iostream>
 #include <Windows.h>
 #include <TlHelp32.h>
+#include <Psapi.h>
 #include <winternl.h>
+#include <string>
 #include <thread>
 
 #endif
@@ -25,6 +27,8 @@
 #include "overlay.h"
 #include "hook.h"
 #include "report.h"
+#include "integrity.h"
+#include "iat.h"
 #include "debugger.h"
 
 
@@ -32,5 +36,8 @@
 extern PIMAGE_DOS_HEADER DosHeader;
 extern PIMAGE_NT_HEADERS NtHeader;
 extern PIMAGE_FILE_HEADER FileHeader;
+
+extern FILE* f;
+
 
 

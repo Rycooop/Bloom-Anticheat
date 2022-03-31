@@ -2,6 +2,7 @@
 #include <winnt.h>
 #include <DbgHelp.h>
 
+#define MAX_TRACE_DEPTH 10
 
 extern DWORD processThreads[100];
 
@@ -15,7 +16,8 @@ BOOL GetProcessThreads();
 namespace Thread
 {
 	bool isRipValid(HANDLE hThread, PBOOL isValid);
-	bool checkReturnAddr(HANDLE hThread);
+	bool checkPrevAddr(HANDLE hThread);
+	bool WalkStack(HANDLE hThread);
 
 	//Thread in charge of queueing apcs and checking RIP
 	void MonitorThreads();

@@ -6,6 +6,8 @@ PIMAGE_DOS_HEADER DosHeader;
 PIMAGE_NT_HEADERS NtHeader;
 PIMAGE_FILE_HEADER FileHeader;
 
+FILE* f;
+
 
 DWORD WINAPI StartupThread(HMODULE hModule)
 {
@@ -13,10 +15,8 @@ DWORD WINAPI StartupThread(HMODULE hModule)
     //will create its own console and output there. This is just to check certain values
     
     AllocConsole();
-    FILE* f;
     freopen_s(&f, "conout$", "w", stdout);
     SetConsoleTitleA("Debug");
-    
 
     //Obtain information on the PE header of the executable. This will be used to traverse the module list
     //and gather other information stored in the PE header such as imports
@@ -43,19 +43,20 @@ DWORD WINAPI StartupThread(HMODULE hModule)
     HANDLE hMemoryThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Memory::ScanMemory, 0, 0, 0);
     HANDLE hThreadMonitor = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Thread::MonitorThreads, 0, 0, 0);
     HANDLE hOverlayThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Overlay::OverlayThread, 0, 0, 0);
+    HANDLE hIntegrityThread = CreateThread(0, 0, (PTHREAD_START_ROUTINE)Integrity::IntegrityThread, 0, 0, 0);
 
-    if (hDebuggerThread == INVALID_HANDLE_VALUE || hMemoryThread == INVALID_HANDLE_VALUE || hThreadMonitor == INVALID_HANDLE_VALUE || hOverlayThread == INVALID_HANDLE_VALUE)
+    if (hDebuggerThread == INVALID_HANDLE_VALUE || hMemoryThread == INVALID_HANDLE_VALUE || hThreadMonitor == INVALID_HANDLE_VALUE || hOverlayThread == INVALID_HANDLE_VALUE || hIntegrityThread == INVALID_HANDLE_VALUE)
     {
         Report::SendReport(INVALID_ANTICHEAT_START);
     }
 
 
     //Constant DLL main loop, any other checks you want to do that arent related to the other detection methods should
-    //be done inside this loop for effiency
+    //be done inside this loop for efficiency
 
     while (true)
     {
-        if (GetAsyncKeyState(VK_F7) & 1)
+        if (GetAsyncKeyState(VK_F4) & 1)
         {
         }
 

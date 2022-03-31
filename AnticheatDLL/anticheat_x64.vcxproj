@@ -148,7 +148,7 @@
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
@@ -157,6 +157,8 @@
     <ClCompile Include="debugger.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="hook.cpp" />
+    <ClCompile Include="iat.cpp" />
+    <ClCompile Include="integrity.cpp" />
     <ClCompile Include="overlay.cpp" />
     <ClCompile Include="report.cpp" />
     <ClCompile Include="memory.cpp" />
@@ -165,7 +167,9 @@
   <ItemGroup>
     <ClInclude Include="debugger.h" />
     <ClInclude Include="hook.h" />
+    <ClInclude Include="iat.h" />
     <ClInclude Include="includes.h" />
+    <ClInclude Include="integrity.h" />
     <ClInclude Include="overlay.h" />
     <ClInclude Include="report.h" />
     <ClInclude Include="memory.h" />
