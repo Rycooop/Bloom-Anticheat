@@ -13,8 +13,10 @@
 #define MAIN_HEADERS
 
 #include <iostream>
+#include <stdio.h>
 #include <Windows.h>
 #include <TlHelp32.h>
+#include <intrin.h>
 #include <Psapi.h>
 #include <winternl.h>
 #include <string>

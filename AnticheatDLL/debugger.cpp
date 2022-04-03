@@ -7,6 +7,7 @@
 #define FLG_HEAP_VALIDATE_PARAMETERS 0x40
 #define NT_GLOBAL_FLAG_CHECK (FLG_HEAP_ENABLE_TAIL_CHECK | FLG_HEAP_ENABLE_FREE_CHECK | FLG_HEAP_VALIDATE_PARAMETERS)
 
+typedef NTSTATUS(WINAPI* tNtQuerySystemInformation)(SYSTEM_INFORMATION_CLASS SystemInformationClass, PVOID SystemInformation, ULONG SystemInformationLength, PULONG ReturnLength);
 typedef NTSTATUS(WINAPI* tNtSetInformationThread)(HANDLE ThreadHandle, THREADINFOCLASS ThreadInfoClass, PVOID ThreadInformation, ULONG ThreadInformationLength);
 
 //Compilation of many different methods to detect/prevent debuggers. Some of these can throw false positives, but most
@@ -17,6 +18,7 @@ typedef NTSTATUS(WINAPI* tNtSetInformationThread)(HANDLE ThreadHandle, THREADINF
 //its more of a hack. We want to keep this as less invasive as we can
 
 
+tNtQuerySystemInformation oNtQuerySystemInformation;
 tNtSetInformationThread oNtSetInformationThread;
 PPEB pPeb = (PPEB)__readgsqword(0x60);
 
@@ -26,6 +28,7 @@ void Debugger::DebuggerThread()
 	HMODULE hNtdll = GetModuleHandle(L"ntdll.dll");
 	if (hNtdll)
 	{
+		oNtQuerySystemInformation = (tNtQuerySystemInformation)GetProcAddress(hNtdll, "NtQuerySystemInformation");
 		oNtSetInformationThread = (tNtSetInformationThread)GetProcAddress(hNtdll, "NtSetInformationThread");
 	}
 
@@ -37,6 +40,13 @@ void Debugger::DebuggerThread()
 		if (Debugger::ReadPEBForDebugger() || Debugger::SpawnedUnderDebugger() || Debugger::CheckDebugString())
 		{
 			Report::SendReport(DEBUGGER_DETECTED);
+		}
+
+		SYSTEM_KERNEL_DEBUGGER_INFORMATION SysInfo;
+		if (NT_SUCCESS(oNtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)0x23, &SysInfo, sizeof(SysInfo), NULL)))
+		{
+			if (SysInfo.DebuggerEnabled || !SysInfo.DebuggerNotPresent)
+				Report::SendReport(KERNEL_DEBUGGING_ENABLED);
 		}
 
 		Sleep(4000);

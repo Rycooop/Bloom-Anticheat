@@ -49,10 +49,19 @@ void Report::SendReport(DWORD reportCode)
 			std::cout << "[*] Hook has been detected, closing..." << std::endl;
 			break;
 		}
+		case IAT_HOOK_DETECTED:
+		{
+			std::cout << "[*] An IAT Hook has been detected in AnticheatDLL.dll, shutting down..." << std::endl;
+			break;
+		}
 		case DEBUGGER_DETECTED:
 		{
 			std::cout << "[*] Debugger was detected, closing..." << std::endl;
 			break;
+		}
+		case KERNEL_DEBUGGING_ENABLED:
+		{
+			std::cout << "[*] Please disable kernel debugging" << std::endl;
 		}
 		case BLACKLISTED_DLL_DETECTED:
 		{
@@ -76,6 +85,6 @@ void Report::SendReport(DWORD reportCode)
 		}
 	}
 
-	Sleep(4000);
+	Sleep(5000);
 	ExitProcess(0);
 }

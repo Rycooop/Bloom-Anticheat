@@ -22,4 +22,11 @@ namespace Overlay
 	BOOL IsSuspiciousWindow(HWND hwnd);
 	void GetMainWindowInfo(HWND mainWindow);
 	BOOL CALLBACK EnumerateWindows(HWND hwnd, LPARAM lParam);
+	DWORD GatherMoreWindowInfo(HWND hwnd, PRECT winDimensions);
 }
+
+enum SuspiciousWindow
+{
+	WINDOW_SUSPICIOUS = 1,
+	WINDOW_OK
+};

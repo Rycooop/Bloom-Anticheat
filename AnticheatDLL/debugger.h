@@ -12,3 +12,8 @@ namespace Debugger
 	BOOL CheckDebugString();
 	LONG HandleExceptions(PEXCEPTION_POINTERS exceptionInfo);
 }
+
+typedef struct _SYSTEM_KERNEL_DEBUGGER_INFORMATION {
+	BOOLEAN DebuggerEnabled;
+	BOOLEAN DebuggerNotPresent;
+} SYSTEM_KERNEL_DEBUGGER_INFORMATION, * PSYSTEM_KERNEL_DEBUGGER_INFORMATION;

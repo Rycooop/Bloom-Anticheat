@@ -11,7 +11,7 @@ typedef HWND(APIENTRY* tCreateWindowExA)(DWORD dwExStyle, LPCSTR lpClassName, LP
 //string arrays
 extern const char* FuncsToHook[];
 extern const char* BlacklistedModules[];
-inline const wchar_t* BlacklistedModulesW[] = { L"cheat.dll", L"aimbot.dll", L"esp.dll", L"hack.dll" };
+inline const wchar_t* BlacklistedModulesW[] = { L"cheat.dll", L"aimbot.dll", L"esp.dll", L"hack.dll", L"Cheat.exe"};
 
 namespace Hooks
 {
