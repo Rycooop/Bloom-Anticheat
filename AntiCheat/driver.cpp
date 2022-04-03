@@ -45,12 +45,10 @@ bool Driver::LoadDriver()
 		Handler::ExitWithError(CANT_ESCALATE_PRIV);
 	}
 
-	/*
-	if (!PathFileExistsA("\\SystemRoot\\System32\\drivers\\AnticheatDriver.sys"))
+	if (!PathFileExistsA("C:\\Windows\\System32\\drivers\\AnticheatDriver.sys"))
 	{
 		Handler::ExitWithError(DRIVER_BAD_PATH);
 	}
-	*/
 
 	if (!Driver::CreateRegistry())
 	{
@@ -122,7 +120,10 @@ BOOL DriverObject::isConnected()
 	if (DeviceIoControl(this->hDriver, IO_STARTUPREQUEST, &Request, sizeof(Request), &Request, sizeof(Request), NULL, NULL))
 	{
 		if (Request.Buffer == 4)
+		{
+			std::cout << "[+] Driver connection established..." << std::endl;
 			return TRUE;
+		}
 		else return FALSE;
 	}
 	else return FALSE;

@@ -55,6 +55,17 @@ BOOL Handler::TroubleshootError(DWORD errorNum)
 				return TRUE;
 			}
 		}
+		case DRIVER_INVALID_LOAD:
+		{
+			std::cout << "[-] Driver load failed, trying again..." << std::endl;
+			if (Driver::Cleanup())
+			{
+				if (Driver::LoadDriver())
+					return TRUE;
+			}
+
+			break;
+		}
 		case DLL_CANT_LOAD:
 		{
 			break;
@@ -77,16 +88,16 @@ void Handler::ExitWithError(DWORD errorNum)
 			std::cout << "		Was unable to find the target process, shutting down..." << std::endl;
 			break;
 		}
-		case CANT_ESCALATE_PRIV:
-		{
-			std::cout << "\n\n==========================================================================================\n" << std::endl;
-			std::cout << "		Was unable to escalate privelages to load driver, shutting down" << std::endl;
-			break;
-		}
 		case PROCESS_INVALID_PROCESSID:
 		{
 			std::cout << "\n\n==========================================================================================\n" << std::endl;
 			std::cout << "		Was unable to find the target process ID, shutting down..." << std::endl;
+			break;
+		}
+		case CANT_ESCALATE_PRIV:
+		{
+			std::cout << "\n\n==========================================================================================\n" << std::endl;
+			std::cout << "		Was unable to escalate privelages to load driver, shutting down" << std::endl;
 			break;
 		}
 		case DLL_INVALID_PATH:
@@ -105,6 +116,12 @@ void Handler::ExitWithError(DWORD errorNum)
 		{
 			std::cout << "\n\n==========================================================================================\n" << std::endl;
 			std::cout << "		Could not load driver, make sure test signing is enabled" << std::endl;
+			break;
+		}
+		case DLL_CANT_LOAD:
+		{
+			std::cout << "\n\n==========================================================================================\n" << std::endl;
+			std::cout << "		Could not load the DLL into the target process. Try again" << std::endl;
 			break;
 		}
 	}

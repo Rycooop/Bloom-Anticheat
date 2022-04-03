@@ -29,7 +29,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 		Handler::TroubleshootError(PROCESS_NOT_RUNNING);
 		Sleep(500);
 	}
-
 	std::cout << "\n[+] Process Found" << std::endl;
 
 
@@ -88,7 +87,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 			Handler::ExitWithError(DRIVER_CONNECTION_ERROR);
 		}
 	}
-	std::cout << "[+] Driver connection established..." << std::endl;
 
 	ULONG ProcessIDs[2] = { GetCurrentProcessId(), Globals.processProcID };
 	if (!KernelDriver.protectProcesses(ProcessIDs))
@@ -103,9 +101,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 
 
 	//Inject dll to target process via a simple loadlibraryA injector. This is where all the usermode detection vectors are. This is critical in ensuring
-	//The anticheat detects cheats
+	//usermode detection of cheats. We will pass through the already created handle since ObRegisterCallbacks will be stripping at this point
 
-	if (!InjectDLL(Globals.processProcID))
+	if (!InjectDLL(Globals.hProcess))
 	{
 		if (!Handler::TroubleshootError(DLL_CANT_LOAD))
 		{
@@ -114,10 +112,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 		}
 	}
 
+	std::cout << "\n===================================================" << std::endl;
+	std::cout << "================ Anticheat Running ================" << std::endl;
+	std::cout << "===================================================" << std::endl;
 
 	while (Util::isProcessRunning(PROTECTED_PROCESS))
 	{
-		Sleep(3000);
+		Sleep(2000);
 	}
 	system("CLS");
 	std::cout << "[+] Cleaning up..." << std::endl;
@@ -125,6 +126,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 	KernelDriver.Shutdown();
 	Driver::Cleanup();
 
+	std::cout << "[+] Closing..." << std::endl;
 	Sleep(3000);
 	return 0;
 }

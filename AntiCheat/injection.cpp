@@ -3,16 +3,23 @@
 
 //Anticheat dll file path here
 std::string dllPath;
-BOOL injectDLL = FALSE;
+BOOL injectDLL = TRUE;
 
 
-BOOL InjectDLL(DWORD procID)
+//Using a handle that was created before ObRegisterCallbacks began stripping, we will inject our DLL into the target process, which
+//will handle its own integrity checks
+
+BOOL InjectDLL(HANDLE hProc)
 {
 	if (!injectDLL)
 		return TRUE;
 
+	CHAR pathBuff[MAX_PATH] = { 0 };
+	GetCurrentDirectoryA(MAX_PATH, pathBuff);
+
 	//Path of anticheat_x64.dll, not relative
-	dllPath = "full\\dll\\path\\here";
+	dllPath = pathBuff;
+	dllPath += "\\anticheatDLL.dll";
 
 	//If the given dll path is not valid
 	if (!PathFileExistsA(dllPath.c_str()))
@@ -22,9 +29,6 @@ BOOL InjectDLL(DWORD procID)
 			Handler::ExitWithError(DLL_INVALID_PATH);
 		}
 	}
-
-	//Obtain handle and perform a simple LoadLibraryA injection
-	HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, FALSE, procID);
 
 	if (hProc == INVALID_HANDLE_VALUE)
 		return FALSE;
