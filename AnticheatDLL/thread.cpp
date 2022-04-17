@@ -7,26 +7,65 @@
 
 DWORD processThreads[100];
 
-//Apc function to be executed on every thread
+
+//This thread is in charge of running our checks and constantly gathering thread information. We create a thread to execute this function
+//inside the dllmain. Any other checks you want to run on threads should be initialized in here
+
+void Thread::MonitorThreads()
+{
+	static BOOL isValid = TRUE;
+
+	while (true)
+	{
+		//Make sure all threads are up to date
+		GetProcessThreads();
+
+		//Check the instruction pointer of all threads before queuing an APC. For malicious threads that dont enter an alertable state,
+		//this will eventually catch them executing their logic
+
+		for (DWORD currThreadId : processThreads)
+		{
+			if (!currThreadId)
+				continue;
+
+			HANDLE hCurrThread = OpenThread(THREAD_ALL_ACCESS, FALSE, currThreadId);
+			if (hCurrThread == INVALID_HANDLE_VALUE)
+				continue;
+
+			Thread::isRipValid(hCurrThread, &isValid);
+
+			CloseHandle(hCurrThread);
+		}
+		if (!isValid)
+			Report::SendReport(RIP_OUTSIDE_VALID_MODULE);
+		
+
+		//Queue the APCS to all the threads
+		if (QueueApcs((PAPCFUNC)ApcFunction) != SUCCESSFULLY_QUEUED)
+			std::cout << "Failed to queue APCS" << std::endl;
+
+		Sleep(7000);
+	}
+}
+
+
+//===========================================================================================================
+
+
+//Apc function to be executed on every thread that enters an alertable state. Some threads may never execute this
+//however our function that checks RIP should eventually catch them
+
 PAPCFUNC ApcFunction(ULONG_PTR Arg)
 {
 	HANDLE hThread = GetCurrentThread();
 
-	BOOL isValid = TRUE;
-	if (Thread::isRipValid(hThread, &isValid))
+	//This will check where each thread came from, if outside of a valid module it will submit a report
+	if (!Thread::WalkStack(GetCurrentThread()))
 	{
-		if (isValid == FALSE)
-		{
-			Report::SendReport(RIP_OUTSIDE_VALID_MODULE);
-		}
+		Report::SendReport(RIP_OUTSIDE_VALID_MODULE);
 	}
 
-
-	//This will check where each thread came from, if outside of a valid module it will submit a report
-
-	if (!Thread::checkPrevAddr(GetCurrentThread()))
-		Report::SendReport(RIP_OUTSIDE_VALID_MODULE);
-
+	CloseHandle(hThread);
 	return 0;
 }
  
@@ -36,59 +75,22 @@ DWORD QueueApcs(PAPCFUNC func)
 	if (!processThreads)
 		return NO_THREAD_INFORMATION;
 
-	DWORD numOfThread = sizeof(processThreads) / sizeof(processThreads[0]);
-
-	if (numOfThread < 1)
-		return NO_THREAD_INFORMATION;
-
-	for (int i = 0; i < numOfThread; i++)
+	for (DWORD currThread : processThreads)
 	{
-		HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE, processThreads[i]);
-		if (hThread == INVALID_HANDLE_VALUE || hThread == 0)
+		if (!currThread)
 			continue;
 
+		HANDLE hThread = OpenThread(THREAD_ALL_ACCESS, FALSE, currThread);
+		if (hThread == INVALID_HANDLE_VALUE || hThread == 0)
+			continue;
+		
 		if (!QueueUserAPC(func, hThread, 0))
 			return FAILED_TO_QUEUE;
+
+		CloseHandle(hThread);
 	}
 
 	return SUCCESSFULLY_QUEUED;
-}
-
-
-//========================================================================================================
-
-
-//Obtain all of the threads currently running in the process using Tlhelp32 THREADENTRY32
-
-BOOL GetProcessThreads()
-{
-	THREADENTRY32 threadEntry;
-	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-	if (hSnap == INVALID_HANDLE_VALUE)
-		return FALSE;
-	 
-	threadEntry.dwSize = sizeof(THREADENTRY32);
-
-	if (!Thread32First(hSnap, &threadEntry))
-		return FALSE;
-
-	int curr = 0;
-	while (Thread32Next(hSnap, &threadEntry))
-	{
-		if (threadEntry.th32OwnerProcessID == GetCurrentProcessId())
-		{
-			if (!threadEntry.th32ThreadID)
-				continue;
-
-			if (curr >= 100)
-				break;
-
-			processThreads[curr] = threadEntry.th32ThreadID;
-			curr++;
-		}
-	}
-
-	return TRUE;
 }
 
 
@@ -125,6 +127,8 @@ bool Thread::isRipValid(HANDLE hThread, PBOOL isValid)
 	//This isnt necessary but good practice because it obtains a full stack trace of the given thread
 	if (StackWalk64(FileHeader->Machine, GetCurrentProcess(), hThread, &sFrame, &sContext, NULL, NULL, NULL, NULL))
 	{
+		std::cout << GetThreadId(hThread) << ": " << (uintptr_t)sFrame.AddrPC.Offset << std::endl;
+
 		if (Memory::isValidModuleAddr((uintptr_t)sFrame.AddrPC.Offset))
 		{
 			*isValid = TRUE;
@@ -160,9 +164,9 @@ bool Thread::checkPrevAddr(HANDLE hThread)
 
 bool Thread::WalkStack(HANDLE hThread)
 {
-	PVOID stackTrace[MAX_TRACE_DEPTH] = { 0 };
+	PVOID stackTrace[10] = { 0 };
 
-	if (RtlCaptureStackBackTrace(0, MAX_TRACE_DEPTH, stackTrace, NULL))
+	if (RtlCaptureStackBackTrace(0, 10, stackTrace, NULL))
 	{
 		for (PVOID currRetAddr : stackTrace)
 		{
@@ -178,28 +182,39 @@ bool Thread::WalkStack(HANDLE hThread)
 }
 
 
-//=================================================================================================================
+//========================================================================================================
 
 
-//This thread is in charge of running our checks and constantly gathering thread information. We create a thread to execute this function
-//inside the dllmain. Any other checks you want to run on threads should be initialized in here
+//Obtain all of the threads currently running in the process using Tlhelp32 THREADENTRY32
 
-void Thread::MonitorThreads()
+BOOL GetProcessThreads()
 {
-	BOOL valid = TRUE;
+	THREADENTRY32 threadEntry;
+	HANDLE hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+	if (hSnap == INVALID_HANDLE_VALUE)
+		return FALSE;
 
-	while (true)
+	threadEntry.dwSize = sizeof(THREADENTRY32);
+
+	if (!Thread32First(hSnap, &threadEntry))
+		return FALSE;
+
+	int curr = 0;
+	while (Thread32Next(hSnap, &threadEntry))
 	{
-		if (valid == FALSE)
-			Report::SendReport(RIP_OUTSIDE_VALID_MODULE);
+		if (threadEntry.th32OwnerProcessID == GetCurrentProcessId())
+		{
+			if (!threadEntry.th32ThreadID)
+				continue;
 
-		//Make sure all threads are up to date
-		GetProcessThreads();
+			if (curr >= 100)
+				break;
 
-
-		//Queue the APCS to all the threads
-		QueueApcs((PAPCFUNC)ApcFunction);
-
-		Sleep(7000);
+			processThreads[curr] = threadEntry.th32ThreadID;
+			curr++;
+		}
 	}
+
+	CloseHandle(hSnap);
+	return TRUE;
 }

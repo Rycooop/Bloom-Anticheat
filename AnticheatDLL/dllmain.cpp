@@ -8,7 +8,6 @@ PIMAGE_FILE_HEADER FileHeader;
 
 FILE* f;
 
-
 DWORD WINAPI StartupThread(HMODULE hModule)
 {
     //Allocate a console for troubleshooting, this should be commented out when you are not debugging as the Report system
@@ -34,7 +33,6 @@ DWORD WINAPI StartupThread(HMODULE hModule)
     {
         Report::SendReport(INVALID_ANTICHEAT_START);
     }
-
 
     //Create threads for each of the detection loops to have efficiency as well as keep everything nice and neat. If a handle is invalid
     //the thread did not start which will not execute that set of detection techniques so we must throw an error

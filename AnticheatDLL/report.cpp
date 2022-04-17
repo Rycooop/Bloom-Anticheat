@@ -62,6 +62,7 @@ void Report::SendReport(DWORD reportCode)
 		case KERNEL_DEBUGGING_ENABLED:
 		{
 			std::cout << "[*] Please disable kernel debugging" << std::endl;
+			break;
 		}
 		case BLACKLISTED_DLL_DETECTED:
 		{

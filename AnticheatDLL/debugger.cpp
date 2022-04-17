@@ -114,11 +114,16 @@ LONG Debugger::HandleExceptions(PEXCEPTION_POINTERS exceptionInfo)
 	}
 	else if (exceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_BREAKPOINT)
 	{
-		//This would indicate a software breakpoint has been set and hit
+		//This would indicate a breakpoint has been set and hit
 		Report::SendReport(DEBUGGER_DETECTED);
 	}
 	else if (exceptionInfo->ExceptionRecord->ExceptionCode == EXCEPTION_DEBUG_EVENT)
 	{
+		Report::SendReport(DEBUGGER_DETECTED);
+	}
+	else if (exceptionInfo->ExceptionRecord->ExceptionCode == STATUS_GUARD_PAGE_VIOLATION)
+	{
+		//This could throw false positives but most of the time this will be effective in detecting GUARD_PAGE hooks
 		Report::SendReport(DEBUGGER_DETECTED);
 	}
 
