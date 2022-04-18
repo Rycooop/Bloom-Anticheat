@@ -7,7 +7,10 @@ PIMAGE_NT_HEADERS DllNtHeader;
 //Walk through the Import Address table of a given module and compare all function addresses to the actual address.
 //Since we will use GetProcAddress to manually resolve the address, it is important that GetProcAddress itself is
 //not hooked so we will check for this first
-
+//
+// @param base of the module whos IAT will be checked
+// @return was an IAT hook found
+//
 BOOL IAT::ScanForIATHook(PVOID ImageBase)
 {
 	if (!DllDosHeader || !DllNtHeader)
@@ -60,7 +63,10 @@ BOOL IAT::ScanForIATHook(PVOID ImageBase)
 //This will check to make sure the address of GetProcAddress in the IAT is inside of KERNEL32.dll. If someone were to
 //IAT hook GetProcAddress they could redirect all functions resolved manually to their own implementation which would
 //defeat the purpose of checking the IAT in the first place
-
+//
+// @param base of the module to check IAT's GetProcAddress function
+// @return does the GetProcAddress import point to the proper location
+//
 BOOL IAT::IsGetProcAddressValid(PVOID ImageBase)
 {
 	if (!DllDosHeader || !DllNtHeader)
@@ -125,7 +131,11 @@ BOOL IAT::IsGetProcAddressValid(PVOID ImageBase)
 
 
 //Manually get the address of a function using GetProcAddress, first checking to make sure GetProcAddress is legit and not IAT hooked
-
+//
+// @param function name to resolve
+// @param library which the function is located
+// @return address of the function requested
+//
 PVOID IAT::ManuallyResolveImports(LPCSTR FuncName, LPCSTR libraryName)
 {
 	PVOID currModBase = GetModuleHandle(L"AnticheatDLL.dll");

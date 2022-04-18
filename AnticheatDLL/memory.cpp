@@ -77,11 +77,46 @@ BOOL Memory::ScanForExecutablePages()
 }
 
 
-//Pattern scan for known cheat images
-
+//Pattern scan for known cheat images. I made this at like 2am so it probably is very inneficient but it should only
+//return an addr when the full pattern is fine
+//
+// @param Pattern of bytes to search
+// @param Mask of the pattern
+// @return Address of the found pattern, NULL if not found
+//
 void* Memory::patternScan(const char* pattern, const char* mask)
 {
+    if (strlen(pattern) != strlen(mask) || mask[0] == '?')
+        return NULL;
 
+    BYTE* modBegin = (BYTE*)GetModuleHandle(0);
+    MODULEINFO ModInfo;
+    
+    if (!GetModuleInformation(GetCurrentProcess(), GetModuleHandle(0), &ModInfo, sizeof(ModInfo)))
+        return NULL;
+
+    if (ModInfo.lpBaseOfDll != modBegin)
+        return NULL;
+
+    for (int i = 0; i < ModInfo.SizeOfImage; i++)
+    {
+        if (*(char*)(modBegin + i) == pattern[0])
+        {
+            for (int j = 1; j < strlen(pattern); j++)
+            {
+                if (mask[j] == '?')
+                    continue;
+
+                if (*(char*)(modBegin + i + j) != pattern[j])
+                    break;
+
+                if (j == strlen(pattern) - 1)
+                    return (void*)(modBegin + i);
+            }
+        }
+    }
+
+    return NULL;
 }
 
 

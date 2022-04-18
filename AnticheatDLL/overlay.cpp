@@ -33,7 +33,7 @@ void Overlay::OverlayThread()
 }
 
 //Our function that will recieve the windows callback and decide what to do with the HWND
-
+//
 BOOL CALLBACK Overlay::EnumerateWindows(HWND hwnd, LPARAM lParam)
 {
 	DWORD procId = 0;
@@ -58,7 +58,10 @@ BOOL CALLBACK Overlay::EnumerateWindows(HWND hwnd, LPARAM lParam)
 
 
 //Checks the extended window attributes as well as the size and location of the window to decide if it should report
-
+//
+// @param handle to the window to check
+// @return is the window suspicious
+//
 BOOL Overlay::IsSuspiciousWindow(HWND hwnd)
 {
 	if (!ProcessMainWindow)
@@ -105,7 +108,9 @@ BOOL Overlay::IsSuspiciousWindow(HWND hwnd)
 
 //Constantly update the information regarding our processes main window just so that the data being compared in the IsSuspiciousWindow function
 //is up to date and not returning false positives
-
+//
+// @param handle to the main protected process window
+//
 void Overlay::GetMainWindowInfo(HWND mainWindow)
 {
 	if (!mainWindow)
@@ -130,7 +135,11 @@ void Overlay::GetMainWindowInfo(HWND mainWindow)
 
 //This function will check to see if the owner of the window is a blacklisted process. It will open a handle, grab
 //basic window info, and then perform a search to see if any blacklisted executables match the owner
-
+// 
+// @param handle to the window to check
+// @param pointer to a RECT of the window dimensions
+// @return status of what the function found
+//
 DWORD Overlay::GatherMoreWindowInfo(HWND hwnd, PRECT winDimensions)
 {
 	int currWidth = winDimensions->right - winDimensions->left;

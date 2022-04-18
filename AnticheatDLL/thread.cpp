@@ -54,7 +54,7 @@ void Thread::MonitorThreads()
 
 //Apc function to be executed on every thread that enters an alertable state. Some threads may never execute this
 //however our function that checks RIP should eventually catch them
-
+//
 PAPCFUNC ApcFunction(ULONG_PTR Arg)
 {
 	HANDLE hThread = GetCurrentThread();
@@ -69,7 +69,11 @@ PAPCFUNC ApcFunction(ULONG_PTR Arg)
 	return 0;
 }
  
-//Queue the apcs to every thread in the process
+// Queue the apcs to every thread in the process
+//
+// @param Address of our APC function
+// @return status of the APC queue
+//
 DWORD QueueApcs(PAPCFUNC func)
 {
 	if (!processThreads)
@@ -99,7 +103,11 @@ DWORD QueueApcs(PAPCFUNC func)
 
 //Checks if the instruction pointer of a given thread is currently in a valid module. If unsigned code is
 //Being executed this will return false and we will know shellcode has been injected, or a manually mapped module
-
+//
+// @param handle of the thread to grab context
+// @param pointer to a BOOLEAN which holds if RIP has been outside a valid module
+// @return was the thread context successfully captured
+//
 bool Thread::isRipValid(HANDLE hThread, PBOOL isValid)
 {
 	STACKFRAME64 sFrame;
@@ -157,11 +165,14 @@ bool Thread::checkPrevAddr(HANDLE hThread)
 
 //Will initiate a stack trace and log up to the previous 10 stack frames. If any of the return addresses are not from a valid module,
 //the function will return false and a report will be submitted for RIP_OUTSIDE_VALID_MODULE
-
+//
 //this is EXTREMELY efficient in catching manually mapped modules as at some point, the cheat thread will call a function and we can
 //immidiately catch the return address as being outside a valid module. To do further checks, you could VirtualQuery the address and
 //upload the whole module or function to your server
-
+//
+// @param Handle to the thread to stackwalk
+// @return if the thread has been outside a valid module
+//
 bool Thread::WalkStack(HANDLE hThread)
 {
 	PVOID stackTrace[10] = { 0 };
@@ -182,11 +193,13 @@ bool Thread::WalkStack(HANDLE hThread)
 }
 
 
-//========================================================================================================
+//=====================================================================================================================
 
 
 //Obtain all of the threads currently running in the process using Tlhelp32 THREADENTRY32
-
+//
+// @return are threads updated
+//
 BOOL GetProcessThreads()
 {
 	THREADENTRY32 threadEntry;

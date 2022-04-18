@@ -175,5 +175,5 @@ HWND Hooks::hkCreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWind
 	}
 
 exit:
-	return CreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, width, height, nHwndParent, hMenu, hInstance, lpParam);
+	return oCreateWindowExA(dwExStyle, lpClassName, lpWindowName, dwStyle, x, y, width, height, nHwndParent, hMenu, hInstance, lpParam);
 }
