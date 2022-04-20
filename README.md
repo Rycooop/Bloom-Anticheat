@@ -1,9 +1,11 @@
 # Bloom Anticheat
-Once loaded, the driver will use ObRegisterCallbacks to protect the anticheat process as well as the game process
+This Anticheat can be used on any windows x64 process. It is currently configured to protect notepad, but changing the macro to the desired process is all you will need to do to change it. The main executable has a basic error handler and should be good enough for debugging.
 
-The DLL can be injected into the game process alone and it will do most of the work, otherwise the EXE will load the DLL into the process you want to protect as well as load and communicate with the driver.
+Once loaded, the driver will use ObRegisterCallbacks() to protect both the anticheat and target process, and begin registering its callbacks.
 
-IMPORTANT: the driver binary must be put inside your System32\drivers folder. Otherwise it will not load.
+For those looking for a simple usermode solution, injecting just the DLL will work as it is not reliant on the other modules. Make sure you LoadLibrary inject however, as manual mapping it will result in it detecting itself.
+
+IMPORTANT: the driver binary must be put inside your System32\drivers folder(an error will be outputted if not).
 
 To build:
 in visual studio, select Batch build and build x64 release for each of the three projects
