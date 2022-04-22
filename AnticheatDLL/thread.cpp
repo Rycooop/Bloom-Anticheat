@@ -135,8 +135,6 @@ bool Thread::isRipValid(HANDLE hThread, PBOOL isValid)
 	//This isnt necessary but good practice because it obtains a full stack trace of the given thread
 	if (StackWalk64(FileHeader->Machine, GetCurrentProcess(), hThread, &sFrame, &sContext, NULL, NULL, NULL, NULL))
 	{
-		std::cout << GetThreadId(hThread) << ": " << (uintptr_t)sFrame.AddrPC.Offset << std::endl;
-
 		if (Memory::isValidModuleAddr((uintptr_t)sFrame.AddrPC.Offset))
 		{
 			*isValid = TRUE;
