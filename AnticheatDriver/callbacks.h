@@ -4,6 +4,7 @@
 #include <ntifs.h>
 #include <ntddk.h>
 #include <ntdef.h>
+#include <fltKernel.h>
 
 #endif
 

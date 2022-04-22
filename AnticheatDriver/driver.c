@@ -10,7 +10,6 @@ HANDLE hThread;
 
 NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath)
 {
-	DbgPrintEx(0, 0, "Driver Loaded\n");
 	UNREFERENCED_PARAMETER(pDriverObject);
 	UNREFERENCED_PARAMETER(pRegistryPath);
 
@@ -24,7 +23,7 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	pDriverObject->MajorFunction[IRP_MJ_CLOSE] = CloseCall;
 	pDriverObject->MajorFunction[IRP_MJ_DEVICE_CONTROL] = IoControl;
 	pDriverObject->DriverUnload = UnloadDriver;
-
+	
 	if (DeviceObject)
 	{
 		DeviceObject->Flags |= DO_DIRECT_IO;
@@ -36,6 +35,8 @@ NTSTATUS DriverEntry(PDRIVER_OBJECT pDriverObject, PUNICODE_STRING pRegistryPath
 	PsSetLoadImageNotifyRoutine((PLOAD_IMAGE_NOTIFY_ROUTINE)ImageLoadCallback);
 	PsSetCreateProcessNotifyRoutine((PCREATE_PROCESS_NOTIFY_ROUTINE)ProcessCreateCallback, FALSE);
 	
+	DbgPrintEx(0, 0, "[Bloom Anticheat] Driver Initialized\n");
+
 	return STATUS_SUCCESS;
 }
 

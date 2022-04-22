@@ -6,6 +6,7 @@
 #include <ntifs.h>
 #include <ntddk.h>
 #include <ntdef.h>
+#include <fltKernel.h>
 
 #endif
 
@@ -15,3 +16,11 @@
 
 //Our main IOCTL Device for communication with usermode
 extern PDEVICE_OBJECT DeviceObject;
+
+
+typedef struct _KERNEL_MODULE_INFO
+{
+	PVOID ModuleBase;
+	ULONG ModuleSize;
+	LPCWSTR ModuleName;
+}KERNEL_MODULE_INFO, * PKERNEL_MODULE_INFO;

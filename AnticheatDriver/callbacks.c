@@ -1,9 +1,9 @@
 #include "includes.h"
 
 
-//kdmapper uses iqvw64e.sys, so if someone manually maps a driver while the anticheat is running it will be detected automatically
-WCHAR* blacklistedModules[20] = { L"iqvw64e.sys", L"kdmapper.exe"};
-
+//Driver manual mappers set the name of the driver to nothing, which in turn will bypass MmUnloadedDrivers. The 
+//rest of these are known vulnerable drivers that someone may be abusing, this list could be much longer
+WCHAR* blacklistedModules[20] = { L"iqvw64e.sys", L"AsUpIO64.sys", L"BS_Flash64.sys", L"Phymemx64.sys", L"kdmapper.exe"};
 
 //Define variables and structures we will need for ObRegisterCallbacks()
 OB_OPERATION_REGISTRATION OperationRegistration;
@@ -15,7 +15,6 @@ PVOID ObRegistrationHandle;
 //image loading of any type. The main functionality of our driver will be held within our callbacks. We will call ObRegisterCallbacks on our
 //protected process, as well as our AntiCheat process to prevent anyone in usermode from tampering with them. We will also check for any abused
 //drivers being loaded on the system while the driver is running :)
-
 
 //Setup the callback registration structs and call ObRegisterCallbacks. Here we will define a callback for Process handles but
 //you can create another one to monitor thread(this may be added in the future)
@@ -60,13 +59,14 @@ OB_PREOP_CALLBACK_STATUS PreOperationCallback(PVOID RegistrationContext, POB_PRE
 	{
 		if (ProtectedProcesses[0] == NULL || ( ProtectedProcesses[0] != NULL && OpInfo->Object != ProtectedProcesses[0]) && (ProtectedProcesses[1] != NULL && OpInfo->Object != ProtectedProcesses[1]))
 			return OB_PREOP_SUCCESS;
-
-		if (OpInfo->Object == PsGetCurrentProcess())
+		
+		if (OpInfo->Object == PsGetCurrentProcess || PsGetCurrentProcess() == ProtectedProcesses[0] || PsGetCurrentProcess() == ProtectedProcesses[1])
 		{
 			return OB_PREOP_SUCCESS;
 		}
 
-		BitsToClear = PROCESS_ALL_ACCESS;
+		//Clear out PROCESS_ALL_ACCESS as well as PROCESS_VM_OPERATION
+		BitsToClear = PROCESS_ALL_ACCESS | 0x8;
 		BitsToSet = DELETE;
 	}
 	else goto Exit;
@@ -129,11 +129,11 @@ PLOAD_IMAGE_NOTIFY_ROUTINE ImageLoadCallback(PUNICODE_STRING FullImageName, HAND
 	for (int i = 0; i < sizeof(blacklistedModules) / sizeof(blacklistedModules[0]); i++)
 	{
 		if (blacklistedModules[i] == NULL)
-			break;
+			continue;
 
 		if (wcsstr(FullImageName->Buffer, blacklistedModules[i]))
 		{
-			DbgPrintEx(0, 0, "Vulnerable driver loaded\n");
+			DbgPrintEx(0, 0, "[Bloom Anticheat] Vulnerable driver or blacklisted module loaded %ls\n", FullImageName->Buffer);
 		}
 	}
 	
