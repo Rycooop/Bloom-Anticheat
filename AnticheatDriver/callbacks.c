@@ -57,9 +57,9 @@ OB_PREOP_CALLBACK_STATUS PreOperationCallback(PVOID RegistrationContext, POB_PRE
 
 	if (OpInfo->ObjectType == *PsProcessType)
 	{
-		if (ProtectedProcesses[0] == NULL || ( ProtectedProcesses[0] != NULL && OpInfo->Object != ProtectedProcesses[0]) && (ProtectedProcesses[1] != NULL && OpInfo->Object != ProtectedProcesses[1]))
+		if (ProtectedProcesses[0] == NULL || (ProtectedProcesses[0] != NULL && OpInfo->Object != ProtectedProcesses[0]) && (ProtectedProcesses[1] != NULL && OpInfo->Object != ProtectedProcesses[1]))
 			return OB_PREOP_SUCCESS;
-		
+
 		if (OpInfo->Object == PsGetCurrentProcess || PsGetCurrentProcess() == ProtectedProcesses[0] || PsGetCurrentProcess() == ProtectedProcesses[1])
 		{
 			return OB_PREOP_SUCCESS;
@@ -69,7 +69,25 @@ OB_PREOP_CALLBACK_STATUS PreOperationCallback(PVOID RegistrationContext, POB_PRE
 		BitsToClear = PROCESS_ALL_ACCESS | 0x8;
 		BitsToSet = DELETE;
 	}
-	else goto Exit;
+	else if (OpInfo->ObjectType == *PsThreadType)
+	{
+		HANDLE ThreadProcID = PsGetThreadProcessId((PETHREAD)OpInfo->Object);
+		PEPROCESS TargetProcess;
+		if (!NT_SUCCESS(PsLookupProcessByProcessId(ThreadProcID, &TargetProcess)))
+			return OB_PREOP_SUCCESS;
+
+		if (ProtectedProcesses[0] == NULL || (ProtectedProcesses[0] != NULL && TargetProcess != ProtectedProcesses[0]) && (ProtectedProcesses[1] != NULL && TargetProcess != ProtectedProcesses[1]))
+			return OB_PREOP_SUCCESS;
+
+		if (TargetProcess == PsGetCurrentProcess || PsGetCurrentProcess() == ProtectedProcesses[0] || PsGetCurrentProcess() == ProtectedProcesses[1])
+		{
+			return OB_PREOP_SUCCESS;
+		}
+
+		BitsToClear = THREAD_ALL_ACCESS;
+		BitsToSet = DELETE;
+	}
+	else return OB_PREOP_SUCCESS;
 
 	switch (OpInfo->Operation)
 	{
@@ -95,7 +113,6 @@ OB_PREOP_CALLBACK_STATUS PreOperationCallback(PVOID RegistrationContext, POB_PRE
 		*DesiredAccess |= BitsToSet;
 	}
 
-Exit:
 	return OB_PREOP_SUCCESS;
 }
 
