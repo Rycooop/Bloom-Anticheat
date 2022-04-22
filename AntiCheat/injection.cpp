@@ -44,8 +44,10 @@ BOOL InjectDLL(HANDLE hProc)
 
 	//Create a thread on LoadLibraryA and pass through the dllpath to load the new module
 	HANDLE hThread = CreateRemoteThread(hProc, 0, 0, (LPTHREAD_START_ROUTINE)LoadLibraryA, memAllocation, 0, 0);
-	if (hThread == INVALID_HANDLE_VALUE)
+	if (hThread == INVALID_HANDLE_VALUE || hThread == 0)
 		return FALSE;
+
+	WaitForSingleObject(hThread, INFINITE);
 
 	if (hThread)
 		CloseHandle(hThread);

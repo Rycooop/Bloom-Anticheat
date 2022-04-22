@@ -118,7 +118,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 
 	while (Util::isProcessRunning(PROTECTED_PROCESS))
 	{
-		Driver::IsDriverAlreadyLoaded();
+
 		Sleep(6000);
 	}
 	system("CLS");
