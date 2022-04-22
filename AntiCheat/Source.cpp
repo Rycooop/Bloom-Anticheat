@@ -1,9 +1,9 @@
 #include "includes.h"
 #include "memory.h"
 
+
 FILE* f;
 GLOBALS Globals;
-
 
 //Make sure to change all the paths to where your actual driver file and dll are located, otherwise you will recieve errors
 //The main purpose of this module is just to communicate with the driver, for all usermode detections take a look at the DLL
@@ -98,7 +98,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 			Handler::ExitWithError(DRIVER_CANT_PROTECT);
 		}
 	}
-
+	
 
 	//Inject dll to target process via a simple loadlibraryA injector. This is where all the usermode detection vectors are. This is critical in ensuring
 	//usermode detection of cheats. We will pass through the already created handle since ObRegisterCallbacks will be stripping at this point
@@ -112,13 +112,14 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR nCmdLine,
 		}
 	}
 
-	std::cout << "\n===================================================" << std::endl;
-	std::cout << "================ Anticheat Running ================" << std::endl;
-	std::cout << "===================================================" << std::endl;
+	std::cout << "\n ===================================================" << std::endl;
+	std::cout << " ================ Anticheat Running ================" << std::endl;
+	std::cout << " ===================================================" << std::endl;
 
 	while (Util::isProcessRunning(PROTECTED_PROCESS))
 	{
-		Sleep(2000);
+		Driver::IsDriverAlreadyLoaded();
+		Sleep(6000);
 	}
 	system("CLS");
 	std::cout << "[+] Cleaning up..." << std::endl;

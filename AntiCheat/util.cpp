@@ -1,6 +1,27 @@
 #include "util.h"
 
 
+BOOL Util::RespawnAsChild(LPCWSTR ProcessName)
+{
+	DWORD ProcID = Util::getRunningProcessId(ProcessName);
+	if (!ProcID)
+		return FALSE;
+
+	HANDLE hFirstInstance = OpenProcess(PROCESS_TERMINATE, FALSE, ProcID);
+
+	if (!TerminateProcess(hFirstInstance, 0))
+		return FALSE;
+
+	STARTUPINFOA StartupInfo;
+	PROCESS_INFORMATION ProcessInfo;
+	ZeroMemory(&StartupInfo, sizeof(STARTUPINFOA));
+	ZeroMemory(&ProcessInfo, sizeof(PROCESS_INFORMATION));
+
+	if (CreateProcessA("C:\\Windows\\notepad.exe", NULL, NULL, NULL, FALSE, 0, NULL, NULL, &StartupInfo, &ProcessInfo))
+		return TRUE;
+	else return FALSE;
+}
+
 BOOL Util::EscalatePrivelages()
 {
 	HANDLE tokenHandle;
@@ -33,23 +54,18 @@ BOOL Util::isProcessRunning(LPCWSTR processName)
 	PROCESSENTRY32 procEntry;
 
 	hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-
 	procEntry.dwSize = sizeof(PROCESSENTRY32);
 
 	if (Process32First(hSnap, &procEntry))
 	{
 		if (lstrcmp(procEntry.szExeFile, processName) == 0)
-		{
 			return true;
-		}
 	}
 
 	while (Process32Next(hSnap, &procEntry))
 	{
 		if (lstrcmp(procEntry.szExeFile, processName) == 0)
-		{
 			return true;
-		}
 	}
 
 	return false;
@@ -62,7 +78,6 @@ DWORD Util::getRunningProcessId(LPCWSTR processName)
 	PROCESSENTRY32 procEntry;
 
 	hSnap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
-
 	procEntry.dwSize = sizeof(PROCESSENTRY32);
 
 	if (Process32First(hSnap, &procEntry))

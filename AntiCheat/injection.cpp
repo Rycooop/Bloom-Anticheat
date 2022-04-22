@@ -49,8 +49,6 @@ BOOL InjectDLL(HANDLE hProc)
 
 	if (hThread)
 		CloseHandle(hThread);
-	if (hProc)
-		CloseHandle(hProc);
 
 	std::cout << "[+] Anticheat DLL injected" << std::endl;
 	return TRUE;

@@ -41,7 +41,7 @@ BOOL Handler::TroubleshootError(DWORD errorNum)
 		{
 			//Ask for a new dll path and if it is invalid exit with an error
 
-			std::cout << "\nDll path invalid, Enter valid path: ";
+			std::cout << "\nDLL must be in the same directory as the anticheat exe, enter the new path: ";
 			std::string newPath;
 			std::cin >> newPath;
 
@@ -109,7 +109,7 @@ void Handler::ExitWithError(DWORD errorNum)
 		case DRIVER_BAD_PATH:
 		{
 			std::cout << "\n\n==========================================================================================\n" << std::endl;
-			std::cout << "		Driver path invalid or not in System32\\drivers folder, shutting down..." << std::endl;
+			std::cout << "		Driver was not found inside System32/drivers directory, shutting down..." << std::endl;
 			break;
 		}
 		case DRIVER_INVALID_LOAD:
@@ -122,6 +122,12 @@ void Handler::ExitWithError(DWORD errorNum)
 		{
 			std::cout << "\n\n==========================================================================================\n" << std::endl;
 			std::cout << "		Could not load the DLL into the target process. Try again" << std::endl;
+			break;
+		}
+		case DRIVER_TOO_MANY_VIOLATIONS:
+		{
+			std::cout << "\n\n==========================================================================================\n" << std::endl;
+			std::cout << "		Driver has likely detected a cheat, closing..." << std::endl;
 			break;
 		}
 	}

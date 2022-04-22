@@ -18,6 +18,8 @@
 
 #define PROTECTED_PROCESS	L"notepad.exe"
 
+extern tNtQuerySystemInformation oNtQuerySystemInformation;
+
 //Global information that will be needed for the process
 typedef struct GLOBALS
 {
